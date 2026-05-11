@@ -3871,7 +3871,16 @@
           既存スプレッドシートから抽出したマスタデータを取り込めます。<br>
           <b>マージ動作:</b> 既存データはそのまま、同名のパートナーは新しい情報で上書きされます。
         </p>
-        <button class="btn-ghost" onclick="importPartnersFromSheet()" style="padding: 10px 16px;">⬇ スプシのパートナー81社を取り込む</button>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="btn-ghost" onclick="importPartnersFromSheet()" style="padding: 10px 16px; text-align: left;">
+            ⬇ パートナー81社を取り込む
+            <span style="display: block; font-size: 10px; color: var(--ink-faint); margin-top: 2px; font-weight: normal;">親密度・担当者・連絡ツール・メモを含む</span>
+          </button>
+          <button class="btn-ghost" onclick="importAllFromSheet()" style="padding: 10px 16px; text-align: left;">
+            ⬇ 求職者・案件・稼働・売上明細を取り込む
+            <span style="display: block; font-size: 10px; color: var(--ink-faint); margin-top: 2px; font-weight: normal;">求職者125名 / 案件47件 / 稼働24件 / 売上明細83件</span>
+          </button>
+        </div>
         <div id="sheet-import-status" style="margin-top: 10px; font-size: 11px; color: var(--ink-muted);"></div>
       </div>
 
@@ -8113,6 +8122,57 @@
       updateTabCounts();
       if (statusEl) statusEl.textContent = `✓ 追加 ${added}社 / 更新 ${updated}社`;
       showToast(`パートナー取り込み完了 (追加${added}・更新${updated})`);
+    } catch (e) {
+      console.error(e);
+      if (statusEl) statusEl.textContent = '✗ ' + (e.message || 'エラー');
+      showToast('取り込みに失敗しました: ' + (e.message || ''), true);
+    }
+  }
+
+  async function importAllFromSheet() {
+    const statusEl = document.getElementById('sheet-import-status');
+    if (statusEl) statusEl.textContent = '読み込み中...';
+    try {
+      const res = await fetch('./sheet-data-import.json?_t=' + Date.now());
+      if (!res.ok) throw new Error('ファイル取得失敗 (' + res.status + ')');
+      const data = await res.json();
+      const cc = (data.candidates || []).length;
+      const jc = (data.jobs || []).length;
+      const ac = (data.assignments || []).length;
+      const rc = (data.revenues || []).length;
+      if (!confirm(`スプシから以下を取り込みます。\n\n求職者: ${cc}名\n案件: ${jc}件\n稼働: ${ac}件\n売上明細: ${rc}件\n\nマージ動作: 既存IDと重複しないものを追加し、同じIDなら上書きします。続行しますか？`)) {
+        if (statusEl) statusEl.textContent = '';
+        return;
+      }
+      let added = { c: 0, j: 0, a: 0, r: 0 };
+      // Merge candidates by id
+      for (const c of (data.candidates || [])) {
+        if (!c || !c.id) continue;
+        await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true);
+        const idx = candidates.findIndex(x => x.id === c.id);
+        if (idx >= 0) candidates[idx] = c; else { candidates.push(c); added.c++; }
+      }
+      for (const j of (data.jobs || [])) {
+        if (!j || !j.id) continue;
+        await window.storage.set(`job:${j.id}`, JSON.stringify(j), true);
+        const idx = jobs.findIndex(x => x.id === j.id);
+        if (idx >= 0) jobs[idx] = j; else { jobs.push(j); added.j++; }
+      }
+      for (const a of (data.assignments || [])) {
+        if (!a || !a.id) continue;
+        await window.storage.set(`asgn:${a.id}`, JSON.stringify(a), true);
+        const idx = assignments.findIndex(x => x.id === a.id);
+        if (idx >= 0) assignments[idx] = a; else { assignments.push(a); added.a++; }
+      }
+      for (const r of (data.revenues || [])) {
+        if (!r || !r.id) continue;
+        await window.storage.set(`rev:${r.id}`, JSON.stringify(r), true);
+        const idx = revenues.findIndex(x => x.id === r.id);
+        if (idx >= 0) revenues[idx] = r; else { revenues.push(r); added.r++; }
+      }
+      render(); renderJobs(); renderAssignments(); updateTabCounts();
+      if (statusEl) statusEl.textContent = `✓ 追加: 求職者${added.c}/案件${added.j}/稼働${added.a}/売上${added.r}`;
+      showToast(`取り込み完了`);
     } catch (e) {
       console.error(e);
       if (statusEl) statusEl.textContent = '✗ ' + (e.message || 'エラー');
