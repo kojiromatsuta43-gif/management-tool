@@ -1945,6 +1945,122 @@
     min-width: 120px;
   }
 
+  /* ==================== Assignment (稼働人材) ==================== */
+  .assignment-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: 16px 20px;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+  .assignment-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+  }
+  .assignment-card.ended {
+    opacity: 0.7;
+  }
+  .assignment-card-main {
+    min-width: 0;
+  }
+  .assignment-headline {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .assignment-cand-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.03em;
+  }
+  .assignment-job {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+  }
+  .assignment-client {
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+  .assignment-meta-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    flex-wrap: wrap;
+  }
+  .assignment-period {
+    background: var(--paper-soft);
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+  }
+  .assignment-period.active {
+    background: var(--rank-a-bg);
+    color: var(--rank-a-fg);
+    border-color: var(--rank-a-border);
+  }
+  .assignment-period.ended {
+    background: var(--rank-b-bg);
+    color: var(--rank-b-fg);
+    border-color: var(--rank-b-border);
+  }
+  .assignment-figures {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 0;
+    align-items: center;
+    border: 1px solid var(--border);
+    background: var(--paper-soft);
+  }
+  .assignment-figure {
+    padding: 8px 14px;
+    border-right: 1px solid var(--border);
+    text-align: right;
+    min-width: 85px;
+  }
+  .assignment-figure:last-child { border-right: none; }
+  .assignment-figure-label {
+    font-size: 9px;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .assignment-figure-value {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .assignment-figure-value.margin { color: var(--accent); }
+  .assignment-figure-value.cost { color: var(--ink-muted); }
+  .assignment-figure-value.rate.high { color: var(--rank-c-fg); }
+  .assignment-figure-value.rate.mid { color: var(--rank-a-fg); }
+  .assignment-figure-value.rate.low { color: var(--rank-s-fg); }
+  .assignment-figure-sub {
+    font-size: 9px;
+    color: var(--ink-faint);
+    margin-top: 1px;
+  }
+
+  @media (max-width: 768px) {
+    .assignment-card { grid-template-columns: 1fr; }
+    .assignment-figures { grid-template-columns: repeat(2, 1fr); }
+    .assignment-figure:nth-child(2) { border-right: none; }
+    .assignment-figure { text-align: center; min-width: 0; }
+  }
+
   /* ==================== Proposal Status ==================== */
   .proposal-status {
     display: inline-block;
@@ -2053,6 +2169,7 @@
   <div class="tab-nav-inner">
     <button class="tab-btn active" data-tab="candidates">求職者 <span class="tab-count" id="tab-count-candidates">0</span></button>
     <button class="tab-btn" data-tab="jobs">案件 <span class="tab-count" id="tab-count-jobs">0</span></button>
+    <button class="tab-btn" data-tab="assignments">稼働人材 <span class="tab-count" id="tab-count-assignments">0</span></button>
     <button class="tab-btn" data-tab="matching">マッチング</button>
   </div>
 </nav>
@@ -2206,6 +2323,69 @@
     </div>
 
     <div id="jobs-container">
+      <div class="loading-state">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- ===== 稼働人材タブ ===== -->
+  <div class="tab-panel" id="panel-assignments">
+    <div class="stats" id="assignment-stats">
+      <div class="stat">
+        <div class="stat-label">稼働中</div>
+        <div class="stat-value" id="astat-active" style="color: var(--rank-a-fg);">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">今月売上</div>
+        <div class="stat-value" id="astat-revenue">—<span class="stat-suffix">万</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">今月原価</div>
+        <div class="stat-value" id="astat-cost" style="color: var(--ink-muted);">—<span class="stat-suffix">万</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">今月粗利</div>
+        <div class="stat-value" id="astat-margin" style="color: var(--accent);">—<span class="stat-suffix">万</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">原価率</div>
+        <div class="stat-value" id="astat-cost-rate">—<span class="stat-suffix">%</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">人材数</div>
+        <div class="stat-value" id="astat-headcount">—</div>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-group-label">ステータス</span>
+          <button class="chip active" data-afilter="status" data-value="active">稼働中</button>
+          <button class="chip" data-afilter="status" data-value="ended">終了</button>
+          <button class="chip" data-afilter="status" data-value="all">全て</button>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-group-label">対象月</span>
+          <input type="month" id="assignment-month" class="sort-select" style="padding: 5px 10px; min-width: 130px;" />
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-group-label">並び</span>
+          <select class="sort-select" id="assignment-sort">
+            <option value="start-desc">開始(新しい順)</option>
+            <option value="start-asc">開始(古い順)</option>
+            <option value="margin-desc">粗利(高い順)</option>
+            <option value="costrate-asc">原価率(低い順)</option>
+            <option value="costrate-desc">原価率(高い順)</option>
+          </select>
+        </div>
+        <div class="filter-divider"></div>
+        <button class="btn-primary" onclick="openAssignmentModal()" style="padding: 8px 16px; font-size: 12px;">+ 稼働を登録</button>
+      </div>
+    </div>
+
+    <div id="assignments-container">
       <div class="loading-state">読み込み中...</div>
     </div>
   </div>
@@ -2815,6 +2995,108 @@
 <datalist id="industry-list"></datalist>
 <datalist id="partner-list"></datalist>
 
+<!-- ===== Assignment (稼働人材) Modal ===== -->
+<div class="modal-overlay" id="assignment-modal">
+  <div class="modal" style="max-width: 600px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-mark"></span><span id="assignment-modal-title">稼働人材の登録</span>
+      </div>
+      <button class="modal-close" onclick="closeAssignmentModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="af-id" />
+
+      <div class="form-section">
+        <div class="form-section-title">人材・案件</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>求職者 <span style="color: var(--accent);">*</span></label>
+            <select id="af-candId">
+              <option value="">— 求職者を選択 —</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>案件</label>
+            <select id="af-jobId">
+              <option value="">— 案件を選択 (任意) —</option>
+            </select>
+          </div>
+          <div class="form-field form-full">
+            <label>クライアント名（案件未紐付け時のみ手入力）</label>
+            <input type="text" id="af-clientOverride" placeholder="案件選択時は自動入力" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">稼働期間</div>
+        <div class="form-grid form-grid-3">
+          <div class="form-field">
+            <label>開始月 <span style="color: var(--accent);">*</span></label>
+            <input type="month" id="af-startMonth" />
+          </div>
+          <div class="form-field">
+            <label>終了月（空欄=継続中）</label>
+            <input type="month" id="af-endMonth" />
+          </div>
+          <div class="form-field">
+            <label>ステータス</label>
+            <select id="af-status">
+              <option value="active">稼働中</option>
+              <option value="ended">終了</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">単価設定（月額・税抜）</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>月売上（クライアントから） <span style="color: var(--accent);">*</span></label>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
+              <input type="number" id="af-monthlyRevenue" min="0" step="1000" placeholder="500000" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" />
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;">円/月</span>
+            </div>
+            <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;" id="af-revenue-man">—</span>
+          </div>
+          <div class="form-field">
+            <label>月原価（人材報酬・パートナー支払等） <span style="color: var(--accent);">*</span></label>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
+              <input type="number" id="af-monthlyCost" min="0" step="1000" placeholder="400000" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" />
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;">円/月</span>
+            </div>
+            <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;" id="af-cost-man">—</span>
+          </div>
+          <div class="form-full">
+            <div class="rate-margin-display" id="af-margin-display" style="display:none;">
+              <span class="rate-margin-label">粗利 / 原価率（月）</span>
+              <span class="rate-margin-value" id="af-margin-value">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section" style="margin-bottom: 0;">
+        <div class="form-section-title">メモ</div>
+        <div class="form-field">
+          <textarea id="af-notes" placeholder="契約条件・連絡事項など"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        <button class="btn-danger" id="af-delete-btn" onclick="confirmDeleteAssignment()" style="display:none;">削除</button>
+      </div>
+      <div class="modal-footer-right">
+        <button class="btn-ghost" onclick="closeAssignmentModal()">キャンセル</button>
+        <button class="btn-primary" onclick="saveAssignment()" style="background: var(--primary);">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== Data Management Modal ===== -->
 <div class="modal-overlay" id="data-modal">
   <div class="modal" style="max-width: 640px;">
@@ -2851,6 +3133,7 @@
           <button class="btn-ghost" onclick="exportCSV('jobs')" style="padding: 8px 14px; font-size: 12px;">案件 CSV</button>
           <button class="btn-ghost" onclick="exportCSV('partners')" style="padding: 8px 14px; font-size: 12px;">パートナー CSV</button>
           <button class="btn-ghost" onclick="exportCSV('proposals')" style="padding: 8px 14px; font-size: 12px;">提案 CSV</button>
+          <button class="btn-ghost" onclick="exportCSV('assignments')" style="padding: 8px 14px; font-size: 12px;">稼働人材 CSV</button>
         </div>
       </div>
 
@@ -3805,12 +4088,19 @@
     const search = document.getElementById('search');
     if (tab === 'jobs') { addBtn.textContent = '案件を追加'; addBtn.style.display = ''; search.placeholder = '案件名・クライアント名で検索…'; renderJobs(); }
     else if (tab === 'candidates') { addBtn.textContent = '求職者を追加'; addBtn.style.display = ''; search.placeholder = '氏名・サービス名・業界・メモで検索…'; render(); }
+    else if (tab === 'assignments') { addBtn.style.display = 'none'; search.placeholder = '人材名・案件名で検索…'; renderAssignments(); }
     else { addBtn.style.display = 'none'; search.placeholder = '検索…'; renderMatching(); }
   }
-  function onAddClick() { if (activeTab === 'jobs') openJobModal(); else openModal(); }
+  function onAddClick() {
+    if (activeTab === 'jobs') openJobModal();
+    else if (activeTab === 'assignments') openAssignmentModal();
+    else openModal();
+  }
   function updateTabCounts() {
     document.getElementById('tab-count-candidates').textContent = candidates.length;
     document.getElementById('tab-count-jobs').textContent = jobs.length;
+    const ac = document.getElementById('tab-count-assignments');
+    if (ac) ac.textContent = (typeof assignments !== 'undefined') ? assignments.filter(a => a.status === 'active').length : 0;
   }
 
   // ============ Jobs State & Storage ============
@@ -5533,8 +5823,338 @@
     userIndustries.forEach(industry => { const option = document.createElement('option'); option.value = industry; datalist.appendChild(option); });
 
     document.getElementById('add-btn').textContent = '求職者を追加';
-    render(); renderJobs(); updateTabCounts(); refreshMatchTarget();
+
+    // Load assignments (Phase 2)
+    assignments = await loadAssignments();
+    setupAssignmentUI();
+
+    render(); renderJobs(); renderAssignments(); updateTabCounts(); refreshMatchTarget();
   })();
+
+  // ============ Assignments (稼働人材 - Phase 2) ============
+  let assignments = [];
+  let assignmentFilters = { status: 'active' };
+  let assignmentSortBy = 'start-desc';
+  let editingAssignmentId = null;
+
+  async function loadAssignments() {
+    try {
+      const result = await window.storage.list('asgn:', true);
+      if (!result || !result.keys) return [];
+      const list = [];
+      for (const key of result.keys) {
+        try {
+          const r = await window.storage.get(key, true);
+          if (r) list.push(JSON.parse(r.value));
+        } catch (e) {}
+      }
+      return list;
+    } catch (e) { return []; }
+  }
+  async function saveAssignmentToStorage(a) {
+    try { await window.storage.set(`asgn:${a.id}`, JSON.stringify(a), true); return true; }
+    catch (e) { showToast('保存に失敗しました', true); return false; }
+  }
+  async function deleteAssignmentFromStorage(id) {
+    try { await window.storage.delete(`asgn:${id}`, true); return true; }
+    catch (e) { return false; }
+  }
+
+  function currentMonth() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+  function monthDiff(a, b) {
+    // returns b - a in months (a, b: 'YYYY-MM')
+    if (!a || !b) return null;
+    const [ay, am] = a.split('-').map(Number);
+    const [by, bm] = b.split('-').map(Number);
+    return (by - ay) * 12 + (bm - am);
+  }
+  function isActiveInMonth(a, month) {
+    if (!a.startMonth) return false;
+    if (monthDiff(a.startMonth, month) < 0) return false;
+    if (a.endMonth && monthDiff(month, a.endMonth) < 0) return false;
+    return true;
+  }
+  function findCandidateById(id) { return candidates.find(c => c.id === id); }
+  function findJobById(id) { return jobs.find(j => j.id === id); }
+
+  function assignmentCostRate(a) {
+    if (!a.monthlyRevenue) return 0;
+    return (a.monthlyCost || 0) / a.monthlyRevenue * 100;
+  }
+  function assignmentMargin(a) {
+    return (a.monthlyRevenue || 0) - (a.monthlyCost || 0);
+  }
+
+  function refreshAssignmentSelects() {
+    const candSel = document.getElementById('af-candId');
+    const jobSel = document.getElementById('af-jobId');
+    if (candSel) {
+      const cur = candSel.value;
+      candSel.innerHTML = '<option value="">— 求職者を選択 —</option>';
+      [...candidates].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja')).forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id; o.textContent = c.name || '(無名)';
+        candSel.appendChild(o);
+      });
+      candSel.value = cur;
+    }
+    if (jobSel) {
+      const cur = jobSel.value;
+      jobSel.innerHTML = '<option value="">— 案件を選択 (任意) —</option>';
+      [...jobs].sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ja')).forEach(j => {
+        const o = document.createElement('option');
+        o.value = j.id;
+        o.textContent = `${j.title || '(無題)'}${j.client ? ' / ' + j.client : ''}`;
+        jobSel.appendChild(o);
+      });
+      jobSel.value = cur;
+    }
+  }
+
+  function openAssignmentModal(id) {
+    editingAssignmentId = id || null;
+    const isEdit = !!id;
+    document.getElementById('assignment-modal-title').textContent = isEdit ? '稼働人材の編集' : '稼働人材の登録';
+    document.getElementById('af-delete-btn').style.display = isEdit ? 'block' : 'none';
+    refreshAssignmentSelects();
+    if (isEdit) {
+      const a = assignments.find(x => x.id === id);
+      if (a) {
+        document.getElementById('af-id').value = a.id;
+        document.getElementById('af-candId').value = a.candId || '';
+        document.getElementById('af-jobId').value = a.jobId || '';
+        document.getElementById('af-clientOverride').value = a.clientOverride || '';
+        document.getElementById('af-startMonth').value = a.startMonth || '';
+        document.getElementById('af-endMonth').value = a.endMonth || '';
+        document.getElementById('af-status').value = a.status || 'active';
+        document.getElementById('af-monthlyRevenue').value = a.monthlyRevenue || '';
+        document.getElementById('af-monthlyCost').value = a.monthlyCost || '';
+        document.getElementById('af-notes').value = a.notes || '';
+      }
+    } else {
+      ['af-id','af-candId','af-jobId','af-clientOverride','af-endMonth','af-monthlyRevenue','af-monthlyCost','af-notes'].forEach(i => { document.getElementById(i).value = ''; });
+      document.getElementById('af-startMonth').value = currentMonth();
+      document.getElementById('af-status').value = 'active';
+    }
+    updateAssignmentMarginDisplay();
+    document.getElementById('assignment-modal').classList.add('active');
+  }
+  function closeAssignmentModal() {
+    document.getElementById('assignment-modal').classList.remove('active');
+    editingAssignmentId = null;
+  }
+  function updateAssignmentMarginDisplay() {
+    const rev = parseFloat(document.getElementById('af-monthlyRevenue').value) || 0;
+    const cost = parseFloat(document.getElementById('af-monthlyCost').value) || 0;
+    document.getElementById('af-revenue-man').textContent = rev ? `(${formatMan(rev)})` : '—';
+    document.getElementById('af-cost-man').textContent = cost ? `(${formatMan(cost)})` : '—';
+    const display = document.getElementById('af-margin-display');
+    const valEl = document.getElementById('af-margin-value');
+    if (!rev && !cost) { display.style.display = 'none'; return; }
+    const margin = rev - cost;
+    const costRate = rev ? (cost / rev * 100) : 0;
+    display.style.display = 'flex';
+    valEl.textContent = `${formatMan(margin)} / 原価率 ${costRate.toFixed(1)}%`;
+    valEl.classList.toggle('negative', margin < 0);
+  }
+
+  async function saveAssignment() {
+    const candId = document.getElementById('af-candId').value;
+    const jobId = document.getElementById('af-jobId').value;
+    const startMonth = document.getElementById('af-startMonth').value;
+    const monthlyRevenue = parseFloat(document.getElementById('af-monthlyRevenue').value) || 0;
+    const monthlyCost = parseFloat(document.getElementById('af-monthlyCost').value) || 0;
+    if (!candId) { showToast('求職者を選択してください', true); return; }
+    if (!startMonth) { showToast('開始月を入力してください', true); return; }
+    if (!monthlyRevenue || !monthlyCost) { showToast('月売上と月原価を入力してください', true); return; }
+    const id = editingAssignmentId || `asgn_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const existing = editingAssignmentId ? assignments.find(a => a.id === id) : null;
+    const a = {
+      id,
+      createdAt: existing ? existing.createdAt : Date.now(),
+      updatedAt: Date.now(),
+      _v: 1,
+      candId,
+      jobId: jobId || null,
+      clientOverride: document.getElementById('af-clientOverride').value.trim() || null,
+      startMonth,
+      endMonth: document.getElementById('af-endMonth').value || null,
+      status: document.getElementById('af-status').value || 'active',
+      monthlyRevenue,
+      monthlyCost,
+      notes: document.getElementById('af-notes').value.trim() || null
+    };
+    const ok = await saveAssignmentToStorage(a);
+    if (ok) {
+      const idx = assignments.findIndex(x => x.id === id);
+      if (idx >= 0) assignments[idx] = a; else assignments.push(a);
+      renderAssignments();
+      updateTabCounts();
+      closeAssignmentModal();
+      showToast(editingAssignmentId ? '更新しました' : '登録しました');
+    }
+  }
+  async function confirmDeleteAssignment() {
+    if (!editingAssignmentId) return;
+    if (!confirm('この稼働レコードを削除しますか？')) return;
+    const ok = await deleteAssignmentFromStorage(editingAssignmentId);
+    if (ok) {
+      assignments = assignments.filter(a => a.id !== editingAssignmentId);
+      renderAssignments();
+      updateTabCounts();
+      closeAssignmentModal();
+      showToast('削除しました');
+    }
+  }
+
+  // ============ Assignments rendering ============
+  function renderAssignmentStats() {
+    const month = document.getElementById('assignment-month').value || currentMonth();
+    const monthAsgns = assignments.filter(a => isActiveInMonth(a, month));
+    const totalRev = monthAsgns.reduce((s, a) => s + (a.monthlyRevenue || 0), 0);
+    const totalCost = monthAsgns.reduce((s, a) => s + (a.monthlyCost || 0), 0);
+    const margin = totalRev - totalCost;
+    const costRate = totalRev ? (totalCost / totalRev * 100) : 0;
+    const headcount = new Set(monthAsgns.map(a => a.candId)).size;
+    const setM = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+    setM('astat-active', monthAsgns.length || '0');
+    setM('astat-revenue', (totalRev / 10000).toFixed(0).replace(/^0$/, '—') + (totalRev ? '<span class="stat-suffix">万</span>' : ''));
+    setM('astat-cost', (totalCost / 10000).toFixed(0).replace(/^0$/, '—') + (totalCost ? '<span class="stat-suffix">万</span>' : ''));
+    setM('astat-margin', (margin / 10000).toFixed(1).replace(/\.0$/, '') + '<span class="stat-suffix">万</span>');
+    setM('astat-cost-rate', costRate ? costRate.toFixed(1) + '<span class="stat-suffix">%</span>' : '—');
+    setM('astat-headcount', headcount || '0');
+  }
+
+  function applyAssignmentFilters(list) {
+    return list.filter(a => {
+      if (assignmentFilters.status === 'active' && a.status !== 'active') return false;
+      if (assignmentFilters.status === 'ended' && a.status !== 'ended') return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const cand = findCandidateById(a.candId);
+        const job = findJobById(a.jobId);
+        const haystack = [cand?.name, job?.title, job?.client, a.clientOverride, a.notes].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+  function applyAssignmentSort(list) {
+    const sorted = [...list];
+    switch (assignmentSortBy) {
+      case 'start-asc': sorted.sort((a, b) => (a.startMonth || '').localeCompare(b.startMonth || '')); break;
+      case 'start-desc': sorted.sort((a, b) => (b.startMonth || '').localeCompare(a.startMonth || '')); break;
+      case 'margin-desc': sorted.sort((a, b) => assignmentMargin(b) - assignmentMargin(a)); break;
+      case 'costrate-asc': sorted.sort((a, b) => assignmentCostRate(a) - assignmentCostRate(b)); break;
+      case 'costrate-desc': sorted.sort((a, b) => assignmentCostRate(b) - assignmentCostRate(a)); break;
+    }
+    return sorted;
+  }
+  function rateColorClass(rate) {
+    if (!rate) return '';
+    if (rate >= 90) return 'high';
+    if (rate >= 75) return 'mid';
+    return 'low';
+  }
+  function renderAssignmentCard(a) {
+    const cand = findCandidateById(a.candId);
+    const job = findJobById(a.jobId);
+    const candName = cand ? cand.name : '(削除された求職者)';
+    const jobTitle = job ? job.title : (a.jobId ? '(削除された案件)' : '—');
+    const client = job?.client || a.clientOverride || '';
+    const isActive = a.status === 'active';
+    const periodLabel = a.endMonth
+      ? `${a.startMonth} → ${a.endMonth}`
+      : `${a.startMonth} → 継続中`;
+    const months = a.endMonth ? monthDiff(a.startMonth, a.endMonth) + 1 : null;
+    const margin = assignmentMargin(a);
+    const costRate = assignmentCostRate(a);
+    return `
+      <div class="assignment-card${isActive ? '' : ' ended'}" onclick="openAssignmentModal('${a.id}')">
+        <div class="assignment-card-main">
+          <div class="assignment-headline">
+            <span class="assignment-cand-name">${escapeHtml(candName)}</span>
+            ${job ? `<span class="assignment-job">${escapeHtml(jobTitle)}</span>` : ''}
+            ${client ? `<span class="assignment-client">${escapeHtml(client)}</span>` : ''}
+          </div>
+          <div class="assignment-meta-row">
+            <span class="assignment-period ${isActive ? 'active' : 'ended'}">${escapeHtml(periodLabel)}${months ? ` (${months}ヶ月)` : ''}</span>
+            ${a.notes ? `<span title="${escapeAttr(a.notes)}">📝 ${escapeHtml(a.notes.substring(0, 30))}${a.notes.length > 30 ? '…' : ''}</span>` : ''}
+          </div>
+        </div>
+        <div class="assignment-figures">
+          <div class="assignment-figure">
+            <div class="assignment-figure-label">売上/月</div>
+            <div class="assignment-figure-value">${formatMan(a.monthlyRevenue)}</div>
+          </div>
+          <div class="assignment-figure">
+            <div class="assignment-figure-label">原価/月</div>
+            <div class="assignment-figure-value cost">${formatMan(a.monthlyCost)}</div>
+          </div>
+          <div class="assignment-figure">
+            <div class="assignment-figure-label">粗利/月</div>
+            <div class="assignment-figure-value margin">${formatMan(margin)}</div>
+          </div>
+          <div class="assignment-figure">
+            <div class="assignment-figure-label">原価率</div>
+            <div class="assignment-figure-value rate ${rateColorClass(costRate)}">${costRate.toFixed(1)}%</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  function renderAssignments() {
+    renderAssignmentStats();
+    let filtered = applyAssignmentFilters(assignments);
+    filtered = applyAssignmentSort(filtered);
+    const container = document.getElementById('assignments-container');
+    if (filtered.length === 0) {
+      if (assignments.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-mark">空</div><div class="empty-title">稼働中の人材がまだ登録されていません</div><div class="empty-text">フィルター上部の「+ 稼働を登録」ボタンから追加してください</div><button class="btn-primary" onclick="openAssignmentModal()" style="background: var(--primary);">最初の稼働を登録</button></div>`;
+      } else {
+        container.innerHTML = `<div class="empty-state"><div class="empty-mark">無</div><div class="empty-title">該当する稼働がありません</div><div class="empty-text">フィルター条件を変更してみてください</div></div>`;
+      }
+      return;
+    }
+    container.innerHTML = filtered.map(renderAssignmentCard).join('');
+  }
+
+  function setupAssignmentUI() {
+    // filter chips
+    document.querySelectorAll('[data-afilter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const f = btn.dataset.afilter;
+        document.querySelectorAll(`[data-afilter="${f}"]`).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        assignmentFilters[f] = btn.dataset.value;
+        renderAssignments();
+      });
+    });
+    const sortSel = document.getElementById('assignment-sort');
+    if (sortSel) sortSel.addEventListener('change', () => { assignmentSortBy = sortSel.value; renderAssignments(); });
+    const monthInput = document.getElementById('assignment-month');
+    if (monthInput) {
+      monthInput.value = currentMonth();
+      monthInput.addEventListener('change', renderAssignmentStats);
+    }
+    // form: live margin display
+    ['af-monthlyRevenue', 'af-monthlyCost'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateAssignmentMarginDisplay);
+    });
+    // auto-fill clientOverride when job picked
+    const jobSel = document.getElementById('af-jobId');
+    if (jobSel) {
+      jobSel.addEventListener('change', () => {
+        const j = findJobById(jobSel.value);
+        const c = document.getElementById('af-clientOverride');
+        if (j && j.client && !c.value) c.value = j.client;
+      });
+    }
+  }
 
   // ============ Data Management (Phase 1) ============
   const DATA_SCHEMA_VERSION = 1;
@@ -5551,9 +6171,10 @@
     const jobCount = (typeof jobs !== 'undefined' && Array.isArray(jobs)) ? jobs.length : 0;
     const propCount = (typeof proposals !== 'undefined' && Array.isArray(proposals)) ? proposals.length : 0;
     const partnerCount = (typeof partners !== 'undefined' && Array.isArray(partners)) ? partners.length : 0;
+    const asgnCount = (typeof assignments !== 'undefined' && Array.isArray(assignments)) ? assignments.length : 0;
     const el = document.getElementById('data-stats');
     if (el) {
-      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerCount}</b>`;
+      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 稼働: <b>${asgnCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerCount}</b>`;
     }
   }
 
@@ -5580,7 +6201,8 @@
         candidates: candidates || [],
         jobs: jobs || [],
         proposals: (typeof proposals !== 'undefined' ? proposals : []),
-        partners: partners || []
+        partners: partners || [],
+        assignments: assignments || []
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
       triggerDownload(`management-tool-backup_${timestamp()}.json`, blob);
@@ -5606,12 +6228,12 @@
       // Clear current storage
       const allKeys = await window.storage.list('', true);
       for (const k of (allKeys.keys || [])) {
-        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k === 'partners') {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k === 'partners') {
           try { await window.storage.delete(k, true); } catch (e) {}
         }
       }
       // Restore
-      let imported = { c: 0, j: 0, p: 0, pt: 0 };
+      let imported = { c: 0, j: 0, p: 0, pt: 0, a: 0 };
       if (Array.isArray(data.candidates)) {
         for (const c of data.candidates) {
           if (c && c.id) { await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true); imported.c++; }
@@ -5631,7 +6253,12 @@
         await window.storage.set('partners', JSON.stringify(data.partners), true);
         imported.pt = data.partners.length;
       }
-      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/提案${imported.p}/パートナー${imported.pt}`);
+      if (Array.isArray(data.assignments)) {
+        for (const a of data.assignments) {
+          if (a && a.id) { await window.storage.set(`asgn:${a.id}`, JSON.stringify(a), true); imported.a++; }
+        }
+      }
+      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/提案${imported.p}/パートナー${imported.pt}`);
       // Reload page to refresh in-memory state cleanly
       setTimeout(() => location.reload(), 800);
     } catch (e) {
@@ -5709,6 +6336,21 @@
           作成: p.createdAt ? new Date(p.createdAt).toISOString() : '',
           更新: p.updatedAt ? new Date(p.updatedAt).toISOString() : ''
         }));
+      } else if (kind === 'assignments') {
+        name = 'assignments';
+        rows = (assignments || []).map(a => {
+          const c = candidates.find(x => x.id === a.candId);
+          const j = jobs.find(x => x.id === a.jobId);
+          return {
+            id: a.id, 求職者ID: a.candId, 求職者名: c?.name || '',
+            案件ID: a.jobId || '', 案件名: j?.title || '', クライアント: j?.client || a.clientOverride || '',
+            開始月: a.startMonth, 終了月: a.endMonth, ステータス: a.status,
+            月売上: a.monthlyRevenue, 月原価: a.monthlyCost,
+            月粗利: (a.monthlyRevenue || 0) - (a.monthlyCost || 0),
+            原価率: a.monthlyRevenue ? ((a.monthlyCost || 0) / a.monthlyRevenue * 100).toFixed(2) : '',
+            メモ: a.notes
+          };
+        });
       }
       if (!rows.length) { showToast(`書き出すデータがありません (${name})`, true); return; }
       const csv = toCSV(rows);
@@ -5727,7 +6369,7 @@
       const allKeys = await window.storage.list('', true);
       let n = 0;
       for (const k of (allKeys.keys || [])) {
-        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k === 'partners') {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k === 'partners') {
           try { await window.storage.delete(k, true); n++; } catch (e) {}
         }
       }
