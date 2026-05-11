@@ -2061,6 +2061,211 @@
     .assignment-figure { text-align: center; min-width: 0; }
   }
 
+  /* ==================== Dashboard ==================== */
+  .dash-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .dash-summary-card {
+    background: var(--paper);
+    padding: 20px 24px;
+  }
+  .dash-summary-card .label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .dash-summary-card .value {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .dash-summary-card .value.margin { color: var(--accent); }
+  .dash-summary-card .value.cost { color: var(--ink-muted); }
+  .dash-summary-card .sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+  .dash-summary-card .delta.up { color: #2C7A4A; }
+  .dash-summary-card .delta.down { color: var(--rank-c-fg); }
+
+  .dash-chart {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .dash-chart-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 14px;
+    color: var(--primary);
+    margin-bottom: 16px;
+    letter-spacing: 0.08em;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .dash-chart-grid {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0 12px;
+    align-items: end;
+  }
+  .dash-chart-y {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 240px;
+    font-size: 10px;
+    color: var(--ink-muted);
+    text-align: right;
+    padding-bottom: 24px;
+    padding-top: 4px;
+  }
+  .dash-chart-bars {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(28px, 1fr);
+    gap: 4px;
+    align-items: end;
+    height: 240px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .dash-bar-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    position: relative;
+  }
+  .dash-bar-col-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: calc(100% - 16px);
+    position: relative;
+  }
+  .dash-bar-cost {
+    background: var(--ink-faint);
+    border-top: 1px solid var(--ink-muted);
+    transition: background 0.2s;
+  }
+  .dash-bar-margin {
+    background: var(--accent);
+    border-top: 1px solid var(--accent);
+    transition: background 0.2s;
+  }
+  .dash-bar-col:hover .dash-bar-cost { background: var(--ink-muted); }
+  .dash-bar-col:hover .dash-bar-margin { background: #B66838; }
+  .dash-bar-label {
+    text-align: center;
+    font-size: 9px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    right: 0;
+    white-space: nowrap;
+    transform: rotate(-45deg);
+    transform-origin: top center;
+  }
+  .dash-bar-value {
+    position: absolute;
+    top: -16px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 10px;
+    color: var(--ink);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .dash-chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+  .dash-legend-mark {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    vertical-align: -2px;
+  }
+  .dash-legend-mark.cost { background: var(--ink-faint); }
+  .dash-legend-mark.margin { background: var(--accent); }
+
+  .dash-table {
+    background: var(--paper);
+    border: 1px solid var(--border);
+  }
+  .dash-table-title {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Shippori Mincho', serif;
+    font-size: 14px;
+    color: var(--primary);
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .dash-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .dash-table th, .dash-table td {
+    padding: 10px 14px;
+    text-align: right;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dash-table th {
+    background: var(--paper-soft);
+    color: var(--ink-muted);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .dash-table th:first-child, .dash-table td:first-child {
+    text-align: left;
+  }
+  .dash-table td.month {
+    font-family: 'Shippori Mincho', serif;
+    font-weight: 500;
+  }
+  .dash-table td.rev { color: var(--ink); }
+  .dash-table td.cost { color: var(--ink-muted); }
+  .dash-table td.margin { color: var(--accent); font-weight: 500; }
+  .dash-table td.rate { font-family: 'Shippori Mincho', serif; }
+  .dash-table tfoot td {
+    background: var(--paper-soft);
+    font-weight: 600;
+    border-top: 2px solid var(--border-strong);
+  }
+
+  @media (max-width: 768px) {
+    .dash-summary { grid-template-columns: repeat(2, 1fr); }
+    .dash-chart-bars { grid-auto-columns: minmax(20px, 1fr); }
+    .dash-bar-value { display: none; }
+  }
+
   /* ==================== Proposal Status ==================== */
   .proposal-status {
     display: inline-block;
@@ -2170,6 +2375,7 @@
     <button class="tab-btn active" data-tab="candidates">求職者 <span class="tab-count" id="tab-count-candidates">0</span></button>
     <button class="tab-btn" data-tab="jobs">案件 <span class="tab-count" id="tab-count-jobs">0</span></button>
     <button class="tab-btn" data-tab="assignments">稼働人材 <span class="tab-count" id="tab-count-assignments">0</span></button>
+    <button class="tab-btn" data-tab="dashboard">ダッシュボード</button>
     <button class="tab-btn" data-tab="matching">マッチング</button>
   </div>
 </nav>
@@ -2388,6 +2594,33 @@
     <div id="assignments-container">
       <div class="loading-state">読み込み中...</div>
     </div>
+  </div>
+
+  <!-- ===== ダッシュボードタブ (Phase 3-5) ===== -->
+  <div class="tab-panel" id="panel-dashboard">
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-group-label">表示期間</span>
+          <select class="sort-select" id="dash-range" style="min-width: 130px;">
+            <option value="6">直近 6ヶ月</option>
+            <option value="12" selected>直近 12ヶ月</option>
+            <option value="24">直近 24ヶ月</option>
+            <option value="all">全期間</option>
+          </select>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-group-label">表示単位</span>
+          <button class="chip active" data-dview="month" type="button">月次</button>
+          <button class="chip" data-dview="detail" type="button">明細</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="dashboard-summary"></div>
+    <div id="dashboard-chart"></div>
+    <div id="dashboard-detail" style="display:none;"></div>
   </div>
 
   <!-- ===== マッチングタブ ===== -->
@@ -4089,6 +4322,7 @@
     if (tab === 'jobs') { addBtn.textContent = '案件を追加'; addBtn.style.display = ''; search.placeholder = '案件名・クライアント名で検索…'; renderJobs(); }
     else if (tab === 'candidates') { addBtn.textContent = '求職者を追加'; addBtn.style.display = ''; search.placeholder = '氏名・サービス名・業界・メモで検索…'; render(); }
     else if (tab === 'assignments') { addBtn.style.display = 'none'; search.placeholder = '人材名・案件名で検索…'; renderAssignments(); }
+    else if (tab === 'dashboard') { addBtn.style.display = 'none'; search.placeholder = '検索…'; renderDashboard(); }
     else { addBtn.style.display = 'none'; search.placeholder = '検索…'; renderMatching(); }
   }
   function onAddClick() {
@@ -5827,6 +6061,7 @@
     // Load assignments (Phase 2)
     assignments = await loadAssignments();
     setupAssignmentUI();
+    setupDashboardUI();
 
     render(); renderJobs(); renderAssignments(); updateTabCounts(); refreshMatchTarget();
   })();
@@ -6154,6 +6389,240 @@
         if (j && j.client && !c.value) c.value = j.client;
       });
     }
+  }
+
+  // ============ Dashboard (Phase 3-5) ============
+  let dashRange = 12;
+  let dashView = 'month';
+
+  function aggregateByMonth(monthsBack) {
+    // Build month series ending at current month
+    const result = new Map(); // month -> { revenue, cost, count, candIds: Set }
+    const today = new Date();
+    const endY = today.getFullYear(), endM = today.getMonth();
+    const months = [];
+    if (monthsBack === 'all') {
+      // find earliest startMonth
+      let earliest = null;
+      assignments.forEach(a => {
+        if (a.startMonth && (!earliest || a.startMonth < earliest)) earliest = a.startMonth;
+      });
+      if (!earliest) earliest = `${endY}-${String(endM + 1).padStart(2, '0')}`;
+      const [sy, sm] = earliest.split('-').map(Number);
+      let y = sy, m = sm - 1;
+      while (y < endY || (y === endY && m <= endM)) {
+        months.push(`${y}-${String(m + 1).padStart(2, '0')}`);
+        m++; if (m >= 12) { m = 0; y++; }
+      }
+    } else {
+      const N = parseInt(monthsBack, 10) || 12;
+      let y = endY, m = endM;
+      for (let i = 0; i < N; i++) {
+        months.unshift(`${y}-${String(m + 1).padStart(2, '0')}`);
+        m--; if (m < 0) { m = 11; y--; }
+      }
+    }
+    months.forEach(mo => result.set(mo, { revenue: 0, cost: 0, count: 0, candIds: new Set() }));
+    assignments.forEach(a => {
+      months.forEach(mo => {
+        if (isActiveInMonth(a, mo)) {
+          const bucket = result.get(mo);
+          bucket.revenue += a.monthlyRevenue || 0;
+          bucket.cost += a.monthlyCost || 0;
+          bucket.count++;
+          if (a.candId) bucket.candIds.add(a.candId);
+        }
+      });
+    });
+    return months.map(mo => {
+      const b = result.get(mo);
+      const margin = b.revenue - b.cost;
+      const costRate = b.revenue ? (b.cost / b.revenue * 100) : 0;
+      return { month: mo, revenue: b.revenue, cost: b.cost, margin, costRate, count: b.count, headcount: b.candIds.size };
+    });
+  }
+
+  function renderDashSummary(series) {
+    if (!series.length) {
+      document.getElementById('dashboard-summary').innerHTML = '';
+      return;
+    }
+    const latest = series[series.length - 1];
+    const prev = series.length >= 2 ? series[series.length - 2] : null;
+    const totalRev = series.reduce((s, x) => s + x.revenue, 0);
+    const totalCost = series.reduce((s, x) => s + x.cost, 0);
+    const totalMargin = totalRev - totalCost;
+    const avgCostRate = totalRev ? (totalCost / totalRev * 100) : 0;
+
+    function delta(curr, prev) {
+      if (!prev || prev === 0) return '';
+      const d = ((curr - prev) / prev) * 100;
+      if (!isFinite(d) || Math.abs(d) < 0.1) return '';
+      return `<span class="delta ${d >= 0 ? 'up' : 'down'}" style="font-size: 11px; margin-left: 6px;">${d >= 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}%</span>`;
+    }
+
+    const html = `
+      <div class="dash-summary">
+        <div class="dash-summary-card">
+          <div class="label">最新月 売上</div>
+          <div class="value">${formatMan(latest.revenue)}${prev ? delta(latest.revenue, prev.revenue) : ''}</div>
+          <div class="sub">${latest.month}</div>
+        </div>
+        <div class="dash-summary-card">
+          <div class="label">最新月 原価</div>
+          <div class="value cost">${formatMan(latest.cost)}${prev ? delta(latest.cost, prev.cost) : ''}</div>
+          <div class="sub">原価率 ${latest.costRate.toFixed(1)}%</div>
+        </div>
+        <div class="dash-summary-card">
+          <div class="label">最新月 粗利</div>
+          <div class="value margin">${formatMan(latest.margin)}${prev ? delta(latest.margin, prev.margin) : ''}</div>
+          <div class="sub">${latest.count}件 / ${latest.headcount}名</div>
+        </div>
+        <div class="dash-summary-card">
+          <div class="label">期間合計 粗利</div>
+          <div class="value margin">${formatMan(totalMargin)}</div>
+          <div class="sub">売上 ${formatMan(totalRev)} / 原価率 ${avgCostRate.toFixed(1)}%</div>
+        </div>
+      </div>
+    `;
+    document.getElementById('dashboard-summary').innerHTML = html;
+  }
+
+  function renderDashChart(series) {
+    if (!series.length) {
+      document.getElementById('dashboard-chart').innerHTML = '';
+      return;
+    }
+    const maxRev = Math.max(...series.map(x => x.revenue), 1);
+    // Find nice scale
+    function niceMax(v) {
+      const e = Math.pow(10, Math.floor(Math.log10(v)));
+      const m = v / e;
+      if (m <= 1) return e;
+      if (m <= 2) return 2 * e;
+      if (m <= 5) return 5 * e;
+      return 10 * e;
+    }
+    const scale = niceMax(maxRev);
+    const tickValues = [scale, scale * 0.75, scale * 0.5, scale * 0.25, 0];
+
+    const barsHtml = series.map(x => {
+      const revPct = (x.revenue / scale) * 100;
+      const costPct = (x.cost / scale) * 100;
+      const marginPct = revPct - costPct;
+      const monthShort = x.month.replace(/^\d{2}/, '').replace('-', '/');
+      return `
+        <div class="dash-bar-col" title="${x.month}: 売上${formatMan(x.revenue)} / 原価${formatMan(x.cost)} / 粗利${formatMan(x.margin)} / 原価率${x.costRate.toFixed(1)}%">
+          <div class="dash-bar-col-inner" style="height: 100%; position: relative;">
+            <div class="dash-bar-value">${x.revenue ? (x.revenue / 10000).toFixed(0) : ''}</div>
+            <div class="dash-bar-margin" style="height: ${marginPct}%;"></div>
+            <div class="dash-bar-cost" style="height: ${costPct}%;"></div>
+          </div>
+          <div class="dash-bar-label">${monthShort}</div>
+        </div>
+      `;
+    }).join('');
+
+    const yHtml = tickValues.map(v => `<div>${(v / 10000).toFixed(0)}万</div>`).join('');
+
+    const html = `
+      <div class="dash-chart">
+        <div class="dash-chart-title">月次売上・原価・粗利</div>
+        <div class="dash-chart-grid">
+          <div class="dash-chart-y">${yHtml}</div>
+          <div class="dash-chart-bars">${barsHtml}</div>
+        </div>
+        <div class="dash-chart-legend">
+          <span><span class="dash-legend-mark cost"></span>原価</span>
+          <span><span class="dash-legend-mark margin"></span>粗利</span>
+          <span style="margin-left: auto; color: var(--ink-faint);">※ 棒の高さ=売上(原価+粗利) / 上の数字は売上(万円)</span>
+        </div>
+      </div>
+    `;
+    document.getElementById('dashboard-chart').innerHTML = html;
+  }
+
+  function renderDashTable(series) {
+    const rows = [...series].reverse(); // newest first
+    const totalRev = series.reduce((s, x) => s + x.revenue, 0);
+    const totalCost = series.reduce((s, x) => s + x.cost, 0);
+    const totalMargin = totalRev - totalCost;
+    const avgRate = totalRev ? (totalCost / totalRev * 100) : 0;
+    const html = `
+      <div class="dash-table">
+        <div class="dash-table-title">月次明細</div>
+        <table>
+          <thead>
+            <tr>
+              <th>月</th>
+              <th>稼働件数</th>
+              <th>人数</th>
+              <th>売上 (税抜)</th>
+              <th>原価 (税抜)</th>
+              <th>粗利 (税抜)</th>
+              <th>原価率</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(x => `
+              <tr>
+                <td class="month">${x.month}</td>
+                <td>${x.count}</td>
+                <td>${x.headcount}</td>
+                <td class="rev">${formatMan(x.revenue)}</td>
+                <td class="cost">${formatMan(x.cost)}</td>
+                <td class="margin">${formatMan(x.margin)}</td>
+                <td class="rate">${x.costRate ? x.costRate.toFixed(1) + '%' : '—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>合計</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="rev">${formatMan(totalRev)}</td>
+              <td class="cost">${formatMan(totalCost)}</td>
+              <td class="margin">${formatMan(totalMargin)}</td>
+              <td class="rate">${avgRate.toFixed(1)}%</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    `;
+    document.getElementById('dashboard-detail').innerHTML = html;
+  }
+
+  function renderDashboard() {
+    const series = aggregateByMonth(dashRange);
+    renderDashSummary(series);
+    if (dashView === 'detail') {
+      document.getElementById('dashboard-chart').style.display = 'none';
+      document.getElementById('dashboard-detail').style.display = '';
+      renderDashTable(series);
+    } else {
+      document.getElementById('dashboard-chart').style.display = '';
+      document.getElementById('dashboard-detail').style.display = 'none';
+      renderDashChart(series);
+    }
+  }
+
+  function setupDashboardUI() {
+    const rangeSel = document.getElementById('dash-range');
+    if (rangeSel) {
+      rangeSel.addEventListener('change', () => {
+        dashRange = rangeSel.value === 'all' ? 'all' : parseInt(rangeSel.value, 10);
+        renderDashboard();
+      });
+    }
+    document.querySelectorAll('[data-dview]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-dview]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        dashView = btn.dataset.dview;
+        renderDashboard();
+      });
+    });
   }
 
   // ============ Data Management (Phase 1) ============
