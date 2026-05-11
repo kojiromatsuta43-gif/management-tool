@@ -3866,6 +3866,16 @@
       </div>
 
       <div class="form-section">
+        <div class="form-section-title">スプレッドシートから取り込み</div>
+        <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
+          既存スプレッドシートから抽出したマスタデータを取り込めます。<br>
+          <b>マージ動作:</b> 既存データはそのまま、同名のパートナーは新しい情報で上書きされます。
+        </p>
+        <button class="btn-ghost" onclick="importPartnersFromSheet()" style="padding: 10px 16px;">⬇ スプシのパートナー81社を取り込む</button>
+        <div id="sheet-import-status" style="margin-top: 10px; font-size: 11px; color: var(--ink-muted);"></div>
+      </div>
+
+      <div class="form-section">
         <div class="form-section-title">CSV エクスポート</div>
         <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
           Excel / Google スプレッドシートで開ける CSV 形式で書き出します（Shift-JIS BOM 付き UTF-8）。
@@ -8054,6 +8064,59 @@
     } catch (e) {
       console.error(e);
       showToast('CSV 書き出しに失敗しました', true);
+    }
+  }
+
+  async function importPartnersFromSheet() {
+    const statusEl = document.getElementById('sheet-import-status');
+    if (statusEl) statusEl.textContent = '読み込み中...';
+    try {
+      const res = await fetch('./partners-import.json?_t=' + Date.now());
+      if (!res.ok) throw new Error('ファイル取得失敗 (' + res.status + ')');
+      const data = await res.json();
+      const incoming = Array.isArray(data.partnerObjs) ? data.partnerObjs : [];
+      if (!incoming.length) throw new Error('パートナーデータが空です');
+      if (!confirm(`${incoming.length} 社のパートナー情報を取り込みます。\n既存の同名パートナーは更新されます。続行しますか？`)) {
+        if (statusEl) statusEl.textContent = '';
+        return;
+      }
+      let added = 0, updated = 0;
+      for (const p of incoming) {
+        if (!p || !p.name) continue;
+        // Match by name (existing partner with same name is updated)
+        const existing = partnerObjs.find(x => x.name === p.name);
+        if (existing) {
+          // Merge: keep existing id/createdAt, take new field values where existing is empty OR always overwrite (we always overwrite to refresh)
+          const merged = {
+            ...existing,
+            ...p,
+            id: existing.id,
+            createdAt: existing.createdAt,
+            updatedAt: Date.now()
+          };
+          await savePartnerObjToStorage(merged);
+          const idx = partnerObjs.findIndex(x => x.id === existing.id);
+          partnerObjs[idx] = merged;
+          updated++;
+        } else {
+          // Use the seed id (preserves repeatable IDs across re-imports)
+          await savePartnerObjToStorage(p);
+          partnerObjs.push(p);
+          added++;
+        }
+        if (!partners.includes(p.name)) partners.push(p.name);
+      }
+      partners.sort((a, b) => a.localeCompare(b, 'ja'));
+      await savePartnersToStorage();
+      refreshPartnerDatalist();
+      renderPartners();
+      updateTabCounts();
+      if (statusEl) statusEl.textContent = `✓ 追加 ${added}社 / 更新 ${updated}社`;
+      showToast(`パートナー取り込み完了 (追加${added}・更新${updated})`);
+    } catch (e) {
+      console.error(e);
+      if (statusEl) statusEl.textContent = '✗ ' + (e.message || 'エラー');
+      showToast('取り込みに失敗しました: ' + (e.message || ''), true);
     }
   }
 
