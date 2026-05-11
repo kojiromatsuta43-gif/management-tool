@@ -2142,6 +2142,97 @@
   .partner-stat-val.empty { color: var(--ink-faint); font-weight: 400; }
   .partner-stat-val.stale { color: var(--rank-c-fg); }
 
+  /* ==================== Revenue Records ==================== */
+  .assignment-card-actions {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .assignment-card-actions .icon-btn {
+    padding: 4px 12px;
+    width: auto;
+    font-size: 11px;
+    height: 26px;
+    letter-spacing: 0.02em;
+  }
+  .revenue-list {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .revenue-list-title {
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .revenue-list-summary {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .revenue-row {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 12px;
+    border-bottom: 1px dotted var(--border);
+  }
+  .revenue-row:last-child { border-bottom: none; }
+  .revenue-month {
+    font-family: 'Shippori Mincho', serif;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .revenue-amount {
+    font-weight: 500;
+    color: var(--ink);
+    text-align: right;
+  }
+  .revenue-status {
+    font-size: 9px;
+    padding: 2px 7px;
+    border: 1px solid;
+    letter-spacing: 0.03em;
+  }
+  .revenue-status.draft { background: var(--paper-soft); color: var(--ink-muted); border-color: var(--border-strong); }
+  .revenue-status.invoiced { background: var(--rank-a-bg); color: var(--rank-a-fg); border-color: var(--rank-a-border); }
+  .revenue-status.paid { background: #E8F2EA; color: #2C7A4A; border-color: #5DA37A; }
+  .revenue-status.overdue { background: var(--rank-c-bg); color: var(--rank-c-fg); border-color: var(--rank-c-border); }
+  .revenue-row-actions {
+    display: flex;
+    gap: 2px;
+  }
+  .revenue-row-actions button {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--border);
+    background: var(--paper);
+    color: var(--ink-muted);
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1;
+    font-family: inherit;
+  }
+  .revenue-row-actions button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
   /* ==================== Dashboard ==================== */
   .dash-summary {
     display: grid;
@@ -3375,6 +3466,141 @@
 <datalist id="industry-list"></datalist>
 <datalist id="partner-list"></datalist>
 
+<!-- ===== Revenue Modal ===== -->
+<div class="modal-overlay" id="revenue-modal">
+  <div class="modal" style="max-width: 600px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-mark"></span><span id="revenue-modal-title">売上明細の登録</span>
+      </div>
+      <button class="modal-close" onclick="closeRevenueModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rf-id" />
+      <input type="hidden" id="rf-assignmentId" />
+
+      <div id="rf-context" style="margin-bottom: 16px; padding: 12px 14px; background: var(--paper-soft); border: 1px solid var(--border); font-size: 12px;"></div>
+
+      <div class="form-section">
+        <div class="form-section-title">売上情報</div>
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; color: var(--ink-muted); display: block; margin-bottom: 6px;">単価モード</label>
+          <div class="toggle-group" data-rfield="rateMode" style="grid-template-columns: 1fr 1fr;">
+            <div class="toggle-option" data-value="monthly">月額固定</div>
+            <div class="toggle-option" data-value="hourly">時給 × 稼働時間</div>
+          </div>
+        </div>
+        <div class="form-grid form-grid-3">
+          <div class="form-field">
+            <label>対象月 <span style="color: var(--accent);">*</span></label>
+            <input type="month" id="rf-month" />
+          </div>
+          <div class="form-field">
+            <label>単価 (税抜) <span style="color: var(--accent);">*</span></label>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
+              <input type="number" id="rf-unitPrice" min="0" step="100" placeholder="500000" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" />
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;" id="rf-unit-suffix">円/月</span>
+            </div>
+          </div>
+          <div class="form-field" id="rf-quantity-field">
+            <label id="rf-quantity-label">個数</label>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
+              <input type="number" id="rf-quantity" min="0" step="0.5" placeholder="1" value="1" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" />
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;" id="rf-quantity-suffix">回</span>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>金額(税抜)</label>
+            <input type="text" id="rf-amountExclTax" readonly style="background: var(--paper); color: var(--ink); font-weight: 600; text-align: right;" />
+          </div>
+          <div class="form-field">
+            <label>税率</label>
+            <select id="rf-taxRate">
+              <option value="10">10%</option>
+              <option value="8">8% (軽減)</option>
+              <option value="0">0% (非課税)</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>金額(税込)</label>
+            <input type="text" id="rf-amountInclTax" readonly style="background: var(--paper); color: var(--ink-muted); text-align: right;" />
+          </div>
+          <div class="form-field">
+            <label>確度</label>
+            <select id="rf-confidence">
+              <option value="100">100% (確定)</option>
+              <option value="80">80%</option>
+              <option value="50">50%</option>
+              <option value="30">30%</option>
+              <option value="10">10%</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>案件ランク</label>
+            <select id="rf-rank">
+              <option value="">—</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">請求書管理</div>
+        <div class="form-grid form-grid-3">
+          <div class="form-field">
+            <label>請求書ステータス</label>
+            <select id="rf-invoiceStatus">
+              <option value="draft">未送付</option>
+              <option value="invoiced">送付済み</option>
+              <option value="paid">入金済み</option>
+              <option value="overdue">期限超過</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>請求書送付日</label>
+            <input type="date" id="rf-invoicedAt" />
+          </div>
+          <div class="form-field">
+            <label>入金期限</label>
+            <input type="date" id="rf-dueDate" />
+          </div>
+          <div class="form-field">
+            <label>入金日</label>
+            <input type="date" id="rf-paidAt" />
+          </div>
+          <div class="form-field form-span-2">
+            <label>請求書送付先</label>
+            <input type="text" id="rf-invoiceTo" placeholder="担当者名 / メールアドレス" />
+          </div>
+          <div class="form-field form-full">
+            <label>請求名目</label>
+            <input type="text" id="rf-invoiceTitle" placeholder="例: 〇月分業務委託費" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section" style="margin-bottom: 0;">
+        <div class="form-section-title">メモ</div>
+        <div class="form-field">
+          <textarea id="rf-notes" placeholder="特記事項・調整内容など"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        <button class="btn-danger" id="rf-delete-btn" onclick="confirmDeleteRevenue()" style="display:none;">削除</button>
+      </div>
+      <div class="modal-footer-right">
+        <button class="btn-ghost" onclick="closeRevenueModal()">キャンセル</button>
+        <button class="btn-primary" onclick="saveRevenue()" style="background: var(--primary);">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== Partner Modal (Phase 6) ===== -->
 <div class="modal-overlay" id="partner-modal">
   <div class="modal" style="max-width: 600px;">
@@ -3552,27 +3778,42 @@
       </div>
 
       <div class="form-section">
-        <div class="form-section-title">単価設定（月額・税抜）</div>
-        <div class="form-grid">
+        <div class="form-section-title">単価設定（税抜）</div>
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; color: var(--ink-muted); display: block; margin-bottom: 6px;">単価モード</label>
+          <div class="toggle-group" data-afield="rateMode" style="grid-template-columns: 1fr 1fr;">
+            <div class="toggle-option active" data-value="monthly">月額固定</div>
+            <div class="toggle-option" data-value="hourly">時給 × 稼働時間</div>
+          </div>
+        </div>
+        <div class="form-grid form-grid-3" id="af-rate-grid">
           <div class="form-field">
-            <label>月売上（クライアントから） <span style="color: var(--accent);">*</span></label>
+            <label id="af-revenue-label">月売上 <span style="color: var(--accent);">*</span></label>
             <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
               <input type="number" id="af-monthlyRevenue" min="0" step="1000" placeholder="500000" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" />
-              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;">円/月</span>
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;" id="af-revenue-unit">円/月</span>
             </div>
             <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;" id="af-revenue-man">—</span>
           </div>
           <div class="form-field">
-            <label>月原価（人材報酬・パートナー支払等） <span style="color: var(--accent);">*</span></label>
+            <label id="af-cost-label">月原価 <span style="color: var(--accent);">*</span></label>
             <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
               <input type="number" id="af-monthlyCost" min="0" step="1000" placeholder="400000" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" />
-              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;">円/月</span>
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;" id="af-cost-unit">円/月</span>
             </div>
             <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;" id="af-cost-man">—</span>
           </div>
+          <div class="form-field" id="af-hours-field" style="display:none;">
+            <label>想定月間稼働時間</label>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
+              <input type="number" id="af-monthlyHours" min="0" step="1" placeholder="160" value="160" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" />
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;">時間</span>
+            </div>
+            <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;">月額換算用</span>
+          </div>
           <div class="form-full">
             <div class="rate-margin-display" id="af-margin-display" style="display:none;">
-              <span class="rate-margin-label">粗利 / 原価率（月）</span>
+              <span class="rate-margin-label">粗利 / 原価率（月額換算）</span>
               <span class="rate-margin-value" id="af-margin-value">—</span>
             </div>
           </div>
@@ -3635,6 +3876,7 @@
           <button class="btn-ghost" onclick="exportCSV('partners')" style="padding: 8px 14px; font-size: 12px;">パートナー CSV</button>
           <button class="btn-ghost" onclick="exportCSV('proposals')" style="padding: 8px 14px; font-size: 12px;">提案 CSV</button>
           <button class="btn-ghost" onclick="exportCSV('assignments')" style="padding: 8px 14px; font-size: 12px;">稼働人材 CSV</button>
+          <button class="btn-ghost" onclick="exportCSV('revenues')" style="padding: 8px 14px; font-size: 12px;">売上明細 CSV</button>
         </div>
       </div>
 
@@ -6335,6 +6577,10 @@
     setupAssignmentUI();
     setupDashboardUI();
 
+    // Load revenue records
+    revenues = await loadRevenues();
+    setupRevenueUI();
+
     // Load partner objects (Phase 6) + migrate legacy name list
     partnerObjs = await loadPartnerObjs();
     await migratePartnerNamesToObjects();
@@ -6427,6 +6673,33 @@
     }
   }
 
+  function setAssignmentRateMode(mode) {
+    document.querySelectorAll('#assignment-modal .toggle-group[data-afield="rateMode"] .toggle-option').forEach(o => o.classList.toggle('active', o.dataset.value === mode));
+    const hoursField = document.getElementById('af-hours-field');
+    const revUnit = document.getElementById('af-revenue-unit');
+    const costUnit = document.getElementById('af-cost-unit');
+    const revLabel = document.getElementById('af-revenue-label');
+    const costLabel = document.getElementById('af-cost-label');
+    if (mode === 'hourly') {
+      hoursField.style.display = '';
+      revUnit.textContent = '円/時';
+      costUnit.textContent = '円/時';
+      revLabel.innerHTML = '時給(売上) <span style="color: var(--accent);">*</span>';
+      costLabel.innerHTML = '時給(原価) <span style="color: var(--accent);">*</span>';
+    } else {
+      hoursField.style.display = 'none';
+      revUnit.textContent = '円/月';
+      costUnit.textContent = '円/月';
+      revLabel.innerHTML = '月売上 <span style="color: var(--accent);">*</span>';
+      costLabel.innerHTML = '月原価 <span style="color: var(--accent);">*</span>';
+    }
+    updateAssignmentMarginDisplay();
+  }
+  function readAssignmentRateMode() {
+    const a = document.querySelector('#assignment-modal .toggle-group[data-afield="rateMode"] .toggle-option.active');
+    return a ? a.dataset.value : 'monthly';
+  }
+
   function openAssignmentModal(id) {
     editingAssignmentId = id || null;
     const isEdit = !!id;
@@ -6443,14 +6716,25 @@
         document.getElementById('af-startMonth').value = a.startMonth || '';
         document.getElementById('af-endMonth').value = a.endMonth || '';
         document.getElementById('af-status').value = a.status || 'active';
-        document.getElementById('af-monthlyRevenue').value = a.monthlyRevenue || '';
-        document.getElementById('af-monthlyCost').value = a.monthlyCost || '';
+        const mode = a.rateMode || 'monthly';
+        setAssignmentRateMode(mode);
+        document.getElementById('af-monthlyHours').value = a.monthlyHours || 160;
+        // Store values in rate mode-appropriate form
+        if (mode === 'hourly') {
+          document.getElementById('af-monthlyRevenue').value = a.hourlyRevenue || '';
+          document.getElementById('af-monthlyCost').value = a.hourlyCost || '';
+        } else {
+          document.getElementById('af-monthlyRevenue').value = a.monthlyRevenue || '';
+          document.getElementById('af-monthlyCost').value = a.monthlyCost || '';
+        }
         document.getElementById('af-notes').value = a.notes || '';
       }
     } else {
       ['af-id','af-candId','af-jobId','af-clientOverride','af-endMonth','af-monthlyRevenue','af-monthlyCost','af-notes'].forEach(i => { document.getElementById(i).value = ''; });
       document.getElementById('af-startMonth').value = currentMonth();
       document.getElementById('af-status').value = 'active';
+      document.getElementById('af-monthlyHours').value = 160;
+      setAssignmentRateMode('monthly');
     }
     updateAssignmentMarginDisplay();
     document.getElementById('assignment-modal').classList.add('active');
@@ -6460,15 +6744,28 @@
     editingAssignmentId = null;
   }
   function updateAssignmentMarginDisplay() {
-    const rev = parseFloat(document.getElementById('af-monthlyRevenue').value) || 0;
-    const cost = parseFloat(document.getElementById('af-monthlyCost').value) || 0;
-    document.getElementById('af-revenue-man').textContent = rev ? `(${formatMan(rev)})` : '—';
-    document.getElementById('af-cost-man').textContent = cost ? `(${formatMan(cost)})` : '—';
+    const mode = readAssignmentRateMode();
+    const inputRev = parseFloat(document.getElementById('af-monthlyRevenue').value) || 0;
+    const inputCost = parseFloat(document.getElementById('af-monthlyCost').value) || 0;
+    const hours = parseFloat(document.getElementById('af-monthlyHours').value) || 160;
+    // Convert to monthly for display
+    let monthlyRev, monthlyCost;
+    if (mode === 'hourly') {
+      monthlyRev = inputRev * hours;
+      monthlyCost = inputCost * hours;
+      document.getElementById('af-revenue-man').textContent = inputRev ? `(月額換算: ${formatMan(monthlyRev)})` : '—';
+      document.getElementById('af-cost-man').textContent = inputCost ? `(月額換算: ${formatMan(monthlyCost)})` : '—';
+    } else {
+      monthlyRev = inputRev;
+      monthlyCost = inputCost;
+      document.getElementById('af-revenue-man').textContent = inputRev ? `(${formatMan(monthlyRev)})` : '—';
+      document.getElementById('af-cost-man').textContent = inputCost ? `(${formatMan(monthlyCost)})` : '—';
+    }
     const display = document.getElementById('af-margin-display');
     const valEl = document.getElementById('af-margin-value');
-    if (!rev && !cost) { display.style.display = 'none'; return; }
-    const margin = rev - cost;
-    const costRate = rev ? (cost / rev * 100) : 0;
+    if (!monthlyRev && !monthlyCost) { display.style.display = 'none'; return; }
+    const margin = monthlyRev - monthlyCost;
+    const costRate = monthlyRev ? (monthlyCost / monthlyRev * 100) : 0;
     display.style.display = 'flex';
     valEl.textContent = `${formatMan(margin)} / 原価率 ${costRate.toFixed(1)}%`;
     valEl.classList.toggle('negative', margin < 0);
@@ -6478,26 +6775,38 @@
     const candId = document.getElementById('af-candId').value;
     const jobId = document.getElementById('af-jobId').value;
     const startMonth = document.getElementById('af-startMonth').value;
-    const monthlyRevenue = parseFloat(document.getElementById('af-monthlyRevenue').value) || 0;
-    const monthlyCost = parseFloat(document.getElementById('af-monthlyCost').value) || 0;
+    const mode = readAssignmentRateMode();
+    const inputRev = parseFloat(document.getElementById('af-monthlyRevenue').value) || 0;
+    const inputCost = parseFloat(document.getElementById('af-monthlyCost').value) || 0;
+    const monthlyHours = parseFloat(document.getElementById('af-monthlyHours').value) || 160;
     if (!candId) { showToast('求職者を選択してください', true); return; }
     if (!startMonth) { showToast('開始月を入力してください', true); return; }
-    if (!monthlyRevenue || !monthlyCost) { showToast('月売上と月原価を入力してください', true); return; }
+    if (!inputRev || !inputCost) {
+      showToast(mode === 'hourly' ? '時給(売上)と時給(原価)を入力してください' : '月売上と月原価を入力してください', true);
+      return;
+    }
     const id = editingAssignmentId || `asgn_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const existing = editingAssignmentId ? assignments.find(a => a.id === id) : null;
+    // Compute and store both modes' effective monthly figures for consistency
+    const monthlyRevenue = mode === 'hourly' ? inputRev * monthlyHours : inputRev;
+    const monthlyCost = mode === 'hourly' ? inputCost * monthlyHours : inputCost;
     const a = {
       id,
       createdAt: existing ? existing.createdAt : Date.now(),
       updatedAt: Date.now(),
-      _v: 1,
+      _v: 2,
       candId,
       jobId: jobId || null,
       clientOverride: document.getElementById('af-clientOverride').value.trim() || null,
       startMonth,
       endMonth: document.getElementById('af-endMonth').value || null,
       status: document.getElementById('af-status').value || 'active',
+      rateMode: mode,
       monthlyRevenue,
       monthlyCost,
+      monthlyHours: mode === 'hourly' ? monthlyHours : null,
+      hourlyRevenue: mode === 'hourly' ? inputRev : null,
+      hourlyCost: mode === 'hourly' ? inputCost : null,
       notes: document.getElementById('af-notes').value.trim() || null
     };
     const ok = await saveAssignmentToStorage(a);
@@ -6585,9 +6894,15 @@
     const months = a.endMonth ? monthDiff(a.startMonth, a.endMonth) + 1 : null;
     const margin = assignmentMargin(a);
     const costRate = assignmentCostRate(a);
+    const rateBadge = a.rateMode === 'hourly'
+      ? `<span class="assignment-period" style="background: var(--accent-soft); color: var(--accent); border-color: var(--accent);">時給 ¥${(a.hourlyRevenue || 0).toLocaleString()}/h × ${a.monthlyHours || 160}h</span>`
+      : `<span class="assignment-period" style="background: var(--paper-soft);">月額固定</span>`;
+    // revenue records for this assignment
+    const revs = revenues.filter(r => r.assignmentId === a.id).sort((x, y) => (y.month || '').localeCompare(x.month || ''));
+    const revHtml = revs.length ? renderRevenueListForAssignment(a.id, revs) : '';
     return `
-      <div class="assignment-card${isActive ? '' : ' ended'}" onclick="openAssignmentModal('${a.id}')">
-        <div class="assignment-card-main">
+      <div class="assignment-card${isActive ? '' : ' ended'}">
+        <div class="assignment-card-main" onclick="openAssignmentModal('${a.id}')">
           <div class="assignment-headline">
             <span class="assignment-cand-name">${escapeHtml(candName)}</span>
             ${job ? `<span class="assignment-job">${escapeHtml(jobTitle)}</span>` : ''}
@@ -6595,6 +6910,7 @@
           </div>
           <div class="assignment-meta-row">
             <span class="assignment-period ${isActive ? 'active' : 'ended'}">${escapeHtml(periodLabel)}${months ? ` (${months}ヶ月)` : ''}</span>
+            ${rateBadge}
             ${a.notes ? `<span title="${escapeAttr(a.notes)}">📝 ${escapeHtml(a.notes.substring(0, 30))}${a.notes.length > 30 ? '…' : ''}</span>` : ''}
           </div>
         </div>
@@ -6614,6 +6930,13 @@
           <div class="assignment-figure">
             <div class="assignment-figure-label">原価率</div>
             <div class="assignment-figure-value rate ${rateColorClass(costRate)}">${costRate.toFixed(1)}%</div>
+          </div>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          ${revHtml}
+          <div class="assignment-card-actions">
+            <button class="icon-btn" onclick="event.stopPropagation(); openRevenueModal(null, '${a.id}')" title="売上明細を追加">+ 売上追加</button>
+            <button class="icon-btn" onclick="event.stopPropagation(); openAssignmentModal('${a.id}')" title="編集">✎ 編集</button>
           </div>
         </div>
       </div>
@@ -6654,9 +6977,13 @@
       monthInput.addEventListener('change', renderAssignmentStats);
     }
     // form: live margin display
-    ['af-monthlyRevenue', 'af-monthlyCost'].forEach(id => {
+    ['af-monthlyRevenue', 'af-monthlyCost', 'af-monthlyHours'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', updateAssignmentMarginDisplay);
+    });
+    // rate mode toggle
+    document.querySelectorAll('#assignment-modal .toggle-group[data-afield="rateMode"] .toggle-option').forEach(opt => {
+      opt.addEventListener('click', () => setAssignmentRateMode(opt.dataset.value));
     });
     // auto-fill clientOverride when job picked
     const jobSel = document.getElementById('af-jobId');
@@ -6667,6 +6994,242 @@
         if (j && j.client && !c.value) c.value = j.client;
       });
     }
+  }
+
+  // ============ Revenue Records ============
+  let revenues = [];
+  let editingRevenueId = null;
+  let revenueContext = { assignmentId: null };
+
+  async function loadRevenues() {
+    try {
+      const result = await window.storage.list('rev:', true);
+      if (!result || !result.keys) return [];
+      const list = [];
+      for (const key of result.keys) {
+        try {
+          const r = await window.storage.get(key, true);
+          if (r) list.push(JSON.parse(r.value));
+        } catch (e) {}
+      }
+      return list;
+    } catch (e) { return []; }
+  }
+  async function saveRevenueToStorage(r) {
+    try { await window.storage.set(`rev:${r.id}`, JSON.stringify(r), true); return true; }
+    catch (e) { showToast('保存に失敗しました', true); return false; }
+  }
+  async function deleteRevenueFromStorage(id) {
+    try { await window.storage.delete(`rev:${id}`, true); return true; }
+    catch (e) { return false; }
+  }
+
+  function readRevenueRateMode() {
+    const active = document.querySelector('#revenue-modal .toggle-group[data-rfield="rateMode"] .toggle-option.active');
+    return active ? active.dataset.value : 'monthly';
+  }
+  function setRevenueRateMode(mode) {
+    document.querySelectorAll('#revenue-modal .toggle-group[data-rfield="rateMode"] .toggle-option').forEach(o => o.classList.toggle('active', o.dataset.value === mode));
+    const unitSuffix = document.getElementById('rf-unit-suffix');
+    const qtySuffix = document.getElementById('rf-quantity-suffix');
+    const qtyLabel = document.getElementById('rf-quantity-label');
+    const qtyField = document.getElementById('rf-quantity-field');
+    const qtyInput = document.getElementById('rf-quantity');
+    if (mode === 'hourly') {
+      unitSuffix.textContent = '円/時';
+      qtySuffix.textContent = '時間';
+      qtyLabel.textContent = '稼働時間';
+      qtyField.style.display = '';
+      if (qtyInput.value === '1' || !qtyInput.value) qtyInput.value = '160';
+    } else {
+      unitSuffix.textContent = '円/月';
+      qtySuffix.textContent = '回';
+      qtyLabel.textContent = '月数';
+      qtyField.style.display = '';
+      if (parseFloat(qtyInput.value) > 10) qtyInput.value = '1';
+      if (!qtyInput.value) qtyInput.value = '1';
+    }
+    updateRevenueAmounts();
+  }
+  function updateRevenueAmounts() {
+    const unit = parseFloat(document.getElementById('rf-unitPrice').value) || 0;
+    const qty = parseFloat(document.getElementById('rf-quantity').value) || 0;
+    const taxRate = parseFloat(document.getElementById('rf-taxRate').value) || 0;
+    const exclTax = unit * qty;
+    const inclTax = exclTax * (1 + taxRate / 100);
+    document.getElementById('rf-amountExclTax').value = exclTax ? exclTax.toLocaleString('ja-JP') + ' 円' : '—';
+    document.getElementById('rf-amountInclTax').value = inclTax ? Math.round(inclTax).toLocaleString('ja-JP') + ' 円' : '—';
+  }
+
+  function openRevenueModal(revenueId, assignmentId) {
+    editingRevenueId = revenueId || null;
+    revenueContext.assignmentId = assignmentId || null;
+    const isEdit = !!revenueId;
+    document.getElementById('revenue-modal-title').textContent = isEdit ? '売上明細の編集' : '売上明細の登録';
+    document.getElementById('rf-delete-btn').style.display = isEdit ? 'block' : 'none';
+
+    // Build context display
+    let contextHtml = '';
+    let asgn = null;
+    if (isEdit) {
+      const rev = revenues.find(r => r.id === revenueId);
+      if (rev) asgn = assignments.find(a => a.id === rev.assignmentId);
+    } else if (assignmentId) {
+      asgn = assignments.find(a => a.id === assignmentId);
+    }
+    if (asgn) {
+      const cand = findCandidateById(asgn.candId);
+      const job = findJobById(asgn.jobId);
+      const client = job?.client || asgn.clientOverride || '';
+      contextHtml = `<div style="display:flex; align-items:baseline; gap: 10px; flex-wrap: wrap;">
+        <span style="font-family: 'Shippori Mincho', serif; font-size: 14px; font-weight: 600; color: var(--ink);">${escapeHtml(cand?.name || '(削除済)')}</span>
+        ${job ? `<span style="color: var(--primary); font-size: 12px;">${escapeHtml(job.title || '')}</span>` : ''}
+        ${client ? `<span style="color: var(--ink-muted); font-size: 11px;">${escapeHtml(client)}</span>` : ''}
+        <span style="margin-left: auto; font-size: 11px; color: var(--ink-muted);">${asgn.rateMode === 'hourly' ? '時給契約' : '月額契約'}</span>
+      </div>`;
+    }
+    document.getElementById('rf-context').innerHTML = contextHtml;
+    document.getElementById('rf-assignmentId').value = assignmentId || (isEdit ? (revenues.find(r => r.id === revenueId)?.assignmentId || '') : '');
+
+    if (isEdit) {
+      const r = revenues.find(x => x.id === revenueId);
+      if (r) {
+        document.getElementById('rf-id').value = r.id;
+        document.getElementById('rf-month').value = r.month || '';
+        document.getElementById('rf-unitPrice').value = r.unitPrice || '';
+        document.getElementById('rf-quantity').value = r.quantity != null ? r.quantity : 1;
+        document.getElementById('rf-taxRate').value = r.taxRate != null ? r.taxRate : 10;
+        document.getElementById('rf-confidence').value = r.confidence != null ? r.confidence : 100;
+        document.getElementById('rf-rank').value = r.rank || '';
+        document.getElementById('rf-invoiceStatus').value = r.invoiceStatus || 'draft';
+        document.getElementById('rf-invoicedAt').value = r.invoicedAt || '';
+        document.getElementById('rf-dueDate').value = r.dueDate || '';
+        document.getElementById('rf-paidAt').value = r.paidAt || '';
+        document.getElementById('rf-invoiceTo').value = r.invoiceTo || '';
+        document.getElementById('rf-invoiceTitle').value = r.invoiceTitle || '';
+        document.getElementById('rf-notes').value = r.notes || '';
+        setRevenueRateMode(r.rateMode || (asgn?.rateMode) || 'monthly');
+      }
+    } else {
+      ['rf-id','rf-invoicedAt','rf-dueDate','rf-paidAt','rf-invoiceTo','rf-invoiceTitle','rf-notes'].forEach(i => { document.getElementById(i).value = ''; });
+      document.getElementById('rf-month').value = currentMonth();
+      document.getElementById('rf-taxRate').value = 10;
+      document.getElementById('rf-confidence').value = 100;
+      document.getElementById('rf-rank').value = '';
+      document.getElementById('rf-invoiceStatus').value = 'draft';
+      // Pre-fill from assignment if available
+      const mode = asgn?.rateMode || 'monthly';
+      setRevenueRateMode(mode);
+      if (asgn) {
+        if (mode === 'hourly') {
+          document.getElementById('rf-unitPrice').value = asgn.hourlyRevenue || '';
+          document.getElementById('rf-quantity').value = asgn.monthlyHours || 160;
+        } else {
+          document.getElementById('rf-unitPrice').value = asgn.monthlyRevenue || '';
+          document.getElementById('rf-quantity').value = 1;
+        }
+      }
+    }
+    updateRevenueAmounts();
+    document.getElementById('revenue-modal').classList.add('active');
+  }
+  function closeRevenueModal() {
+    document.getElementById('revenue-modal').classList.remove('active');
+    editingRevenueId = null;
+    revenueContext.assignmentId = null;
+  }
+
+  async function saveRevenue() {
+    const assignmentId = document.getElementById('rf-assignmentId').value;
+    const month = document.getElementById('rf-month').value;
+    const unitPrice = parseFloat(document.getElementById('rf-unitPrice').value) || 0;
+    const quantity = parseFloat(document.getElementById('rf-quantity').value) || 0;
+    if (!month) { showToast('対象月を入力してください', true); return; }
+    if (!unitPrice || !quantity) { showToast('単価と個数(稼働時間)を入力してください', true); return; }
+    const id = editingRevenueId || `rev_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const existing = editingRevenueId ? revenues.find(r => r.id === id) : null;
+    const taxRate = parseFloat(document.getElementById('rf-taxRate').value) || 0;
+    const amountExclTax = unitPrice * quantity;
+    const amountInclTax = amountExclTax * (1 + taxRate / 100);
+    const r = {
+      id,
+      createdAt: existing ? existing.createdAt : Date.now(),
+      updatedAt: Date.now(),
+      _v: 1,
+      assignmentId: assignmentId || null,
+      month,
+      rateMode: readRevenueRateMode(),
+      unitPrice,
+      quantity,
+      amountExclTax,
+      amountInclTax: Math.round(amountInclTax),
+      taxRate,
+      confidence: parseInt(document.getElementById('rf-confidence').value, 10) || 100,
+      rank: document.getElementById('rf-rank').value || null,
+      invoiceStatus: document.getElementById('rf-invoiceStatus').value || 'draft',
+      invoicedAt: document.getElementById('rf-invoicedAt').value || null,
+      dueDate: document.getElementById('rf-dueDate').value || null,
+      paidAt: document.getElementById('rf-paidAt').value || null,
+      invoiceTo: document.getElementById('rf-invoiceTo').value.trim() || null,
+      invoiceTitle: document.getElementById('rf-invoiceTitle').value.trim() || null,
+      notes: document.getElementById('rf-notes').value.trim() || null
+    };
+    const ok = await saveRevenueToStorage(r);
+    if (ok) {
+      const idx = revenues.findIndex(x => x.id === id);
+      if (idx >= 0) revenues[idx] = r; else revenues.push(r);
+      renderAssignments();
+      closeRevenueModal();
+      showToast(editingRevenueId ? '更新しました' : '登録しました');
+    }
+  }
+  async function confirmDeleteRevenue() {
+    if (!editingRevenueId) return;
+    if (!confirm('この売上明細を削除しますか？')) return;
+    const ok = await deleteRevenueFromStorage(editingRevenueId);
+    if (ok) {
+      revenues = revenues.filter(r => r.id !== editingRevenueId);
+      renderAssignments();
+      closeRevenueModal();
+      showToast('削除しました');
+    }
+  }
+
+  function invoiceStatusLabel(s) { return { draft: '未送付', invoiced: '送付済み', paid: '入金済み', overdue: '期限超過' }[s] || '—'; }
+  function renderRevenueListForAssignment(asgnId, revs) {
+    const sum = revs.reduce((s, r) => s + (r.amountExclTax || 0), 0);
+    return `
+      <div class="revenue-list">
+        <div class="revenue-list-title">
+          <span>売上明細 (${revs.length}件)</span>
+          <span class="revenue-list-summary">合計 ${formatMan(sum)} (税抜)</span>
+        </div>
+        ${revs.slice(0, 6).map(r => `
+          <div class="revenue-row">
+            <span class="revenue-month">${escapeHtml(r.month || '')}</span>
+            <span style="color: var(--ink-muted); font-size: 11px;">${r.rateMode === 'hourly' ? `${(r.unitPrice || 0).toLocaleString()}円 × ${r.quantity}h` : `${(r.unitPrice || 0).toLocaleString()}円 × ${r.quantity}`}</span>
+            <span class="revenue-amount">${formatMan(r.amountExclTax)}</span>
+            <span class="revenue-status ${r.invoiceStatus || 'draft'}" title="${invoiceStatusLabel(r.invoiceStatus)}">${invoiceStatusLabel(r.invoiceStatus)}</span>
+            <span class="revenue-row-actions">
+              <button onclick="event.stopPropagation(); openRevenueModal('${r.id}', '${asgnId}')" title="編集">✎</button>
+            </span>
+          </div>
+        `).join('')}
+        ${revs.length > 6 ? `<div style="font-size: 11px; color: var(--ink-faint); margin-top: 6px; text-align: right;">他 ${revs.length - 6} 件 ...</div>` : ''}
+      </div>
+    `;
+  }
+
+  function setupRevenueUI() {
+    document.querySelectorAll('#revenue-modal .toggle-group[data-rfield="rateMode"] .toggle-option').forEach(opt => {
+      opt.addEventListener('click', () => setRevenueRateMode(opt.dataset.value));
+    });
+    ['rf-unitPrice', 'rf-quantity', 'rf-taxRate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateRevenueAmounts);
+    });
+    const taxSel = document.getElementById('rf-taxRate');
+    if (taxSel) taxSel.addEventListener('change', updateRevenueAmounts);
   }
 
   // ============ Partners CRM (Phase 6) ============
@@ -7020,17 +7583,36 @@
         m--; if (m < 0) { m = 11; y--; }
       }
     }
-    months.forEach(mo => result.set(mo, { revenue: 0, cost: 0, count: 0, candIds: new Set() }));
+    months.forEach(mo => result.set(mo, { revenue: 0, cost: 0, count: 0, candIds: new Set(), hasActualRevenue: false }));
+    // For each (assignment, month), use actual revenue record if exists, otherwise use assignment.monthlyRevenue
     assignments.forEach(a => {
       months.forEach(mo => {
         if (isActiveInMonth(a, mo)) {
           const bucket = result.get(mo);
-          bucket.revenue += a.monthlyRevenue || 0;
+          // Find actual revenue record for this assignment×month
+          const actualRev = revenues.find(r => r.assignmentId === a.id && r.month === mo);
+          if (actualRev) {
+            bucket.revenue += actualRev.amountExclTax || 0;
+            bucket.hasActualRevenue = true;
+          } else {
+            bucket.revenue += a.monthlyRevenue || 0;
+          }
           bucket.cost += a.monthlyCost || 0;
           bucket.count++;
           if (a.candId) bucket.candIds.add(a.candId);
         }
       });
+    });
+    // Also include revenue records not tied to any active assignment (standalone)
+    revenues.forEach(r => {
+      if (!r.month || !result.has(r.month)) return;
+      // Skip if already counted via assignment
+      if (r.assignmentId) {
+        const a = assignments.find(x => x.id === r.assignmentId);
+        if (a && isActiveInMonth(a, r.month)) return;
+      }
+      const bucket = result.get(r.month);
+      bucket.revenue += r.amountExclTax || 0;
     });
     return months.map(mo => {
       const b = result.get(mo);
@@ -7241,7 +7823,9 @@
     const asgnCount = (typeof assignments !== 'undefined' && Array.isArray(assignments)) ? assignments.length : 0;
     const el = document.getElementById('data-stats');
     if (el) {
-      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 稼働: <b>${asgnCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerCount}</b>`;
+      const revCount = (typeof revenues !== 'undefined' && Array.isArray(revenues)) ? revenues.length : 0;
+      const partnerObjCount = (typeof partnerObjs !== 'undefined' && Array.isArray(partnerObjs)) ? partnerObjs.length : partnerCount;
+      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 稼働: <b>${asgnCount}</b> / 売上: <b>${revCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerObjCount}</b>`;
     }
   }
 
@@ -7270,7 +7854,8 @@
         proposals: (typeof proposals !== 'undefined' ? proposals : []),
         partners: partners || [],
         partnerObjs: partnerObjs || [],
-        assignments: assignments || []
+        assignments: assignments || [],
+        revenues: revenues || []
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
       triggerDownload(`management-tool-backup_${timestamp()}.json`, blob);
@@ -7296,12 +7881,12 @@
       // Clear current storage
       const allKeys = await window.storage.list('', true);
       for (const k of (allKeys.keys || [])) {
-        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k === 'partners') {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k.startsWith('rev:') || k === 'partners') {
           try { await window.storage.delete(k, true); } catch (e) {}
         }
       }
       // Restore
-      let imported = { c: 0, j: 0, p: 0, pt: 0, a: 0, pn: 0 };
+      let imported = { c: 0, j: 0, p: 0, pt: 0, a: 0, pn: 0, r: 0 };
       if (Array.isArray(data.candidates)) {
         for (const c of data.candidates) {
           if (c && c.id) { await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true); imported.c++; }
@@ -7331,7 +7916,12 @@
           if (p && p.id) { await window.storage.set(`partner:${p.id}`, JSON.stringify(p), true); imported.pn++; }
         }
       }
-      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/提案${imported.p}/パートナー${imported.pn || imported.pt}`);
+      if (Array.isArray(data.revenues)) {
+        for (const r of data.revenues) {
+          if (r && r.id) { await window.storage.set(`rev:${r.id}`, JSON.stringify(r), true); imported.r++; }
+        }
+      }
+      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/売上${imported.r}/提案${imported.p}/パートナー${imported.pn || imported.pt}`);
       // Reload page to refresh in-memory state cleanly
       setTimeout(() => location.reload(), 800);
     } catch (e) {
@@ -7429,10 +8019,31 @@
             id: a.id, 求職者ID: a.candId, 求職者名: c?.name || '',
             案件ID: a.jobId || '', 案件名: j?.title || '', クライアント: j?.client || a.clientOverride || '',
             開始月: a.startMonth, 終了月: a.endMonth, ステータス: a.status,
+            単価モード: a.rateMode || 'monthly',
+            時給売上: a.hourlyRevenue || '', 時給原価: a.hourlyCost || '', 月間稼働時間: a.monthlyHours || '',
             月売上: a.monthlyRevenue, 月原価: a.monthlyCost,
             月粗利: (a.monthlyRevenue || 0) - (a.monthlyCost || 0),
             原価率: a.monthlyRevenue ? ((a.monthlyCost || 0) / a.monthlyRevenue * 100).toFixed(2) : '',
             メモ: a.notes
+          };
+        });
+      } else if (kind === 'revenues') {
+        name = 'revenues';
+        rows = (revenues || []).map(r => {
+          const asgn = assignments.find(x => x.id === r.assignmentId);
+          const cand = asgn ? candidates.find(c => c.id === asgn.candId) : null;
+          const job = asgn ? jobs.find(j => j.id === asgn.jobId) : null;
+          return {
+            id: r.id, 稼働ID: r.assignmentId || '',
+            求職者名: cand?.name || '', 案件名: job?.title || '', クライアント: job?.client || asgn?.clientOverride || '',
+            対象月: r.month, 単価モード: r.rateMode,
+            単価: r.unitPrice, 個数: r.quantity,
+            売上税抜: r.amountExclTax, 税率: r.taxRate, 売上税込: r.amountInclTax,
+            確度: r.confidence, 案件ランク: r.rank,
+            請求書ステータス: invoiceStatusLabel(r.invoiceStatus),
+            送付日: r.invoicedAt, 入金期限: r.dueDate, 入金日: r.paidAt,
+            送付先: r.invoiceTo, 請求名目: r.invoiceTitle,
+            メモ: r.notes
           };
         });
       }
@@ -7453,7 +8064,7 @@
       const allKeys = await window.storage.list('', true);
       let n = 0;
       for (const k of (allKeys.keys || [])) {
-        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k === 'partners') {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k.startsWith('rev:') || k === 'partners') {
           try { await window.storage.delete(k, true); n++; } catch (e) {}
         }
       }
