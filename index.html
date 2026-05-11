@@ -2061,6 +2061,87 @@
     .assignment-figure { text-align: center; min-width: 0; }
   }
 
+  /* ==================== Partners CRM ==================== */
+  .partner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .partner-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .partner-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .partner-card-accent {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--border-strong);
+  }
+  .partner-card-accent.A { background: var(--rank-s-border); }
+  .partner-card-accent.B { background: var(--rank-a-border); }
+  .partner-card-accent.C { background: var(--rank-b-border); }
+  .partner-card-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .partner-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+  .partner-contact {
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+  .partner-meta {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .partner-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border: 1px solid var(--border-strong);
+    background: var(--paper-soft);
+    color: var(--ink-muted);
+    letter-spacing: 0.03em;
+  }
+  .partner-tag.intimacy-A { background: var(--rank-s-bg); color: var(--rank-s-fg); border-color: var(--rank-s-border); }
+  .partner-tag.intimacy-B { background: var(--rank-a-bg); color: var(--rank-a-fg); border-color: var(--rank-a-border); }
+  .partner-tag.intimacy-C { background: var(--rank-b-bg); color: var(--rank-b-fg); border-color: var(--rank-b-border); }
+  .partner-tag.type-SES { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .partner-tag.regular { background: #E8F2EA; color: #2C7A4A; border-color: #5DA37A; }
+  .partner-card-body {
+    padding: 12px 20px 16px;
+  }
+  .partner-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 16px;
+    font-size: 12px;
+  }
+  .partner-stat-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted var(--border);
+    padding: 3px 0;
+  }
+  .partner-stat-key { color: var(--ink-muted); }
+  .partner-stat-val { color: var(--ink); font-weight: 500; }
+  .partner-stat-val.empty { color: var(--ink-faint); font-weight: 400; }
+  .partner-stat-val.stale { color: var(--rank-c-fg); }
+
   /* ==================== Dashboard ==================== */
   .dash-summary {
     display: grid;
@@ -2375,6 +2456,7 @@
     <button class="tab-btn active" data-tab="candidates">求職者 <span class="tab-count" id="tab-count-candidates">0</span></button>
     <button class="tab-btn" data-tab="jobs">案件 <span class="tab-count" id="tab-count-jobs">0</span></button>
     <button class="tab-btn" data-tab="assignments">稼働人材 <span class="tab-count" id="tab-count-assignments">0</span></button>
+    <button class="tab-btn" data-tab="partners">パートナー <span class="tab-count" id="tab-count-partners">0</span></button>
     <button class="tab-btn" data-tab="dashboard">ダッシュボード</button>
     <button class="tab-btn" data-tab="matching">マッチング</button>
   </div>
@@ -2592,6 +2674,71 @@
     </div>
 
     <div id="assignments-container">
+      <div class="loading-state">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- ===== パートナータブ (Phase 6) ===== -->
+  <div class="tab-panel" id="panel-partners">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">総パートナー数</div>
+        <div class="stat-value" id="pstat-total">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">親密度A</div>
+        <div class="stat-value" id="pstat-intimacy-a" style="color: var(--rank-s-fg);">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">定期配信中</div>
+        <div class="stat-value" id="pstat-regular" style="color: var(--rank-a-fg);">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">紐付き求職者数</div>
+        <div class="stat-value" id="pstat-candidates">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">30日以上連絡なし</div>
+        <div class="stat-value" id="pstat-stale" style="color: var(--rank-c-fg);">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">SES契約</div>
+        <div class="stat-value" id="pstat-ses">—</div>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-group-label">親密度</span>
+          <button class="chip active" data-pfilter="intimacy" data-value="all">全て</button>
+          <button class="chip" data-pfilter="intimacy" data-value="A">A以上</button>
+          <button class="chip" data-pfilter="intimacy" data-value="B">B以上</button>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-group-label">種別</span>
+          <button class="chip active" data-pfilter="type" data-value="all">全て</button>
+          <button class="chip" data-pfilter="type" data-value="SES">SES</button>
+          <button class="chip" data-pfilter="type" data-value="営業">営業</button>
+          <button class="chip" data-pfilter="type" data-value="紹介">紹介</button>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-group-label">並び</span>
+          <select class="sort-select" id="partner-sort">
+            <option value="name">名前順</option>
+            <option value="intimacy">親密度順</option>
+            <option value="last-contact">連絡日(新しい順)</option>
+            <option value="cand-count">紐付き人数順</option>
+          </select>
+        </div>
+        <div class="filter-divider"></div>
+        <button class="btn-primary" onclick="openPartnerModal()" style="padding: 8px 16px; font-size: 12px;">+ パートナー追加</button>
+      </div>
+    </div>
+
+    <div id="partners-container">
       <div class="loading-state">読み込み中...</div>
     </div>
   </div>
@@ -3227,6 +3374,127 @@
 
 <datalist id="industry-list"></datalist>
 <datalist id="partner-list"></datalist>
+
+<!-- ===== Partner Modal (Phase 6) ===== -->
+<div class="modal-overlay" id="partner-modal">
+  <div class="modal" style="max-width: 600px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-mark"></span><span id="partner-modal-title">パートナーの登録</span>
+      </div>
+      <button class="modal-close" onclick="closePartnerModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pf-id" />
+
+      <div class="form-section">
+        <div class="form-section-title">基本情報</div>
+        <div class="form-grid">
+          <div class="form-field form-full">
+            <label>パートナー企業名 <span style="color: var(--accent);">*</span></label>
+            <input type="text" id="pf-name" placeholder="株式会社○○" />
+          </div>
+          <div class="form-field">
+            <label>担当者名</label>
+            <input type="text" id="pf-primaryContact" placeholder="例: 山田太郎" />
+          </div>
+          <div class="form-field">
+            <label>連絡ツール</label>
+            <select id="pf-contactTool">
+              <option value="">選択</option>
+              <option value="Slack">Slack</option>
+              <option value="LINE">LINE</option>
+              <option value="Messenger">Messenger</option>
+              <option value="Email">Email</option>
+              <option value="Chatwork">Chatwork</option>
+              <option value="Teams">Teams</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>連絡先(メール等)</label>
+            <input type="text" id="pf-contactDetail" placeholder="メール / Slack ID等" />
+          </div>
+          <div class="form-field">
+            <label>取扱職種</label>
+            <input type="text" id="pf-jobCategories" placeholder="例: IS/FS/EN" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">関係性</div>
+        <div class="form-grid form-grid-3">
+          <div class="form-field">
+            <label>親密度</label>
+            <div class="rank-picker" data-pfield="intimacy">
+              <div class="rank-option" data-value="A">A</div>
+              <div class="rank-option" data-value="B">B</div>
+              <div class="rank-option" data-value="C">C</div>
+              <div class="rank-option" data-value="Z">Z</div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>種別</label>
+            <select id="pf-type">
+              <option value="">選択</option>
+              <option value="SES">SES</option>
+              <option value="営業">営業</option>
+              <option value="紹介">紹介</option>
+              <option value="複合">複合</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>定期配信</label>
+            <select id="pf-regularDistribution">
+              <option value="">未設定</option>
+              <option value="あり">あり</option>
+              <option value="なし">なし</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>最終連絡日</label>
+            <input type="date" id="pf-lastContactedAt" />
+          </div>
+          <div class="form-field">
+            <label>面談同席</label>
+            <select id="pf-faceToFace">
+              <option value="">未設定</option>
+              <option value="可">可</option>
+              <option value="不可">不可</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>連絡状況</label>
+            <select id="pf-contactStatus">
+              <option value="">選択</option>
+              <option value="active">活発</option>
+              <option value="dormant">休眠</option>
+              <option value="ng">NG</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section" style="margin-bottom: 0;">
+        <div class="form-section-title">メモ</div>
+        <div class="form-field">
+          <textarea id="pf-notes" placeholder="案件配信実績・特記事項・注意点など"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        <button class="btn-danger" id="pf-delete-btn" onclick="confirmDeletePartner()" style="display:none;">削除</button>
+      </div>
+      <div class="modal-footer-right">
+        <button class="btn-ghost" onclick="closePartnerModal()">キャンセル</button>
+        <button class="btn-primary" onclick="savePartner()" style="background: var(--primary);">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ===== Assignment (稼働人材) Modal ===== -->
 <div class="modal-overlay" id="assignment-modal">
@@ -4322,12 +4590,14 @@
     if (tab === 'jobs') { addBtn.textContent = '案件を追加'; addBtn.style.display = ''; search.placeholder = '案件名・クライアント名で検索…'; renderJobs(); }
     else if (tab === 'candidates') { addBtn.textContent = '求職者を追加'; addBtn.style.display = ''; search.placeholder = '氏名・サービス名・業界・メモで検索…'; render(); }
     else if (tab === 'assignments') { addBtn.style.display = 'none'; search.placeholder = '人材名・案件名で検索…'; renderAssignments(); }
+    else if (tab === 'partners') { addBtn.style.display = 'none'; search.placeholder = 'パートナー名・担当者・メモで検索…'; renderPartners(); }
     else if (tab === 'dashboard') { addBtn.style.display = 'none'; search.placeholder = '検索…'; renderDashboard(); }
     else { addBtn.style.display = 'none'; search.placeholder = '検索…'; renderMatching(); }
   }
   function onAddClick() {
     if (activeTab === 'jobs') openJobModal();
     else if (activeTab === 'assignments') openAssignmentModal();
+    else if (activeTab === 'partners') openPartnerModal();
     else openModal();
   }
   function updateTabCounts() {
@@ -4335,6 +4605,8 @@
     document.getElementById('tab-count-jobs').textContent = jobs.length;
     const ac = document.getElementById('tab-count-assignments');
     if (ac) ac.textContent = (typeof assignments !== 'undefined') ? assignments.filter(a => a.status === 'active').length : 0;
+    const pc = document.getElementById('tab-count-partners');
+    if (pc) pc.textContent = (typeof partnerObjs !== 'undefined') ? partnerObjs.length : 0;
   }
 
   // ============ Jobs State & Storage ============
@@ -6063,7 +6335,13 @@
     setupAssignmentUI();
     setupDashboardUI();
 
-    render(); renderJobs(); renderAssignments(); updateTabCounts(); refreshMatchTarget();
+    // Load partner objects (Phase 6) + migrate legacy name list
+    partnerObjs = await loadPartnerObjs();
+    await migratePartnerNamesToObjects();
+    setupPartnerUI();
+    refreshPartnerDatalist();
+
+    render(); renderJobs(); renderAssignments(); renderPartners(); updateTabCounts(); refreshMatchTarget();
   })();
 
   // ============ Assignments (稼働人材 - Phase 2) ============
@@ -6391,6 +6669,326 @@
     }
   }
 
+  // ============ Partners CRM (Phase 6) ============
+  let partnerObjs = []; // detailed partner entities
+  let partnerFilters = { intimacy: 'all', type: 'all' };
+  let partnerSortBy = 'name';
+  let editingPartnerId = null;
+
+  async function loadPartnerObjs() {
+    try {
+      const result = await window.storage.list('partner:', true);
+      if (!result || !result.keys) return [];
+      const list = [];
+      for (const key of result.keys) {
+        try {
+          const r = await window.storage.get(key, true);
+          if (r) list.push(JSON.parse(r.value));
+        } catch (e) {}
+      }
+      return list;
+    } catch (e) { return []; }
+  }
+  async function savePartnerObjToStorage(p) {
+    try { await window.storage.set(`partner:${p.id}`, JSON.stringify(p), true); return true; }
+    catch (e) { showToast('保存に失敗しました', true); return false; }
+  }
+  async function deletePartnerObjFromStorage(id) {
+    try { await window.storage.delete(`partner:${id}`, true); return true; }
+    catch (e) { return false; }
+  }
+
+  async function migratePartnerNamesToObjects() {
+    // For each name in `partners` (string array), create partner object if no object with same name exists.
+    if (!Array.isArray(partners) || !partners.length) return;
+    const existingNames = new Set(partnerObjs.map(p => p.name));
+    for (const name of partners) {
+      if (typeof name !== 'string' || !name.trim()) continue;
+      if (existingNames.has(name)) continue;
+      const p = {
+        id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        name: name.trim(),
+        createdAt: Date.now(), updatedAt: Date.now(), _v: 1,
+        primaryContact: null, contactTool: null, contactDetail: null,
+        jobCategories: null, intimacy: null, type: null,
+        regularDistribution: null, lastContactedAt: null,
+        faceToFace: null, contactStatus: null, notes: null
+      };
+      await savePartnerObjToStorage(p);
+      partnerObjs.push(p);
+      existingNames.add(name);
+    }
+  }
+
+  function refreshPartnerDatalist() {
+    // Override the simple version - now uses partnerObjs primarily
+    const dl = document.getElementById('partner-list');
+    const names = partnerObjs.map(p => p.name).filter(Boolean);
+    // also include legacy plain-string partners not yet migrated
+    if (Array.isArray(partners)) {
+      partners.forEach(n => { if (typeof n === 'string' && n && !names.includes(n)) names.push(n); });
+    }
+    names.sort((a, b) => a.localeCompare(b, 'ja'));
+    if (dl) {
+      dl.innerHTML = '';
+      names.forEach(name => {
+        const o = document.createElement('option');
+        o.value = name;
+        dl.appendChild(o);
+      });
+    }
+    const sel = document.getElementById('f-partnerSelect');
+    if (sel) {
+      const current = sel.value;
+      sel.innerHTML = '<option value="">— 既存パートナーから選ぶ —</option>';
+      names.forEach(name => {
+        const o = document.createElement('option');
+        o.value = name;
+        o.textContent = name;
+        sel.appendChild(o);
+      });
+      if (current && names.includes(current)) sel.value = current;
+    }
+  }
+
+  function readPartnerPicker(field) {
+    const active = document.querySelector(`#partner-modal .rank-picker[data-pfield="${field}"] .rank-option.active`);
+    return active ? active.dataset.value : null;
+  }
+
+  function openPartnerModal(id) {
+    editingPartnerId = id || null;
+    const isEdit = !!id;
+    document.getElementById('partner-modal-title').textContent = isEdit ? 'パートナーの編集' : 'パートナーの登録';
+    document.getElementById('pf-delete-btn').style.display = isEdit ? 'block' : 'none';
+    document.querySelectorAll('#partner-modal .rank-option.active').forEach(el => el.classList.remove('active','s','a','b','c'));
+    if (isEdit) {
+      const p = partnerObjs.find(x => x.id === id);
+      if (p) {
+        document.getElementById('pf-id').value = p.id;
+        document.getElementById('pf-name').value = p.name || '';
+        document.getElementById('pf-primaryContact').value = p.primaryContact || '';
+        document.getElementById('pf-contactTool').value = p.contactTool || '';
+        document.getElementById('pf-contactDetail').value = p.contactDetail || '';
+        document.getElementById('pf-jobCategories').value = p.jobCategories || '';
+        document.getElementById('pf-type').value = p.type || '';
+        document.getElementById('pf-regularDistribution').value = p.regularDistribution || '';
+        document.getElementById('pf-lastContactedAt').value = p.lastContactedAt || '';
+        document.getElementById('pf-faceToFace').value = p.faceToFace || '';
+        document.getElementById('pf-contactStatus').value = p.contactStatus || '';
+        document.getElementById('pf-notes').value = p.notes || '';
+        if (p.intimacy) {
+          const el = document.querySelector(`#partner-modal .rank-picker[data-pfield="intimacy"] .rank-option[data-value="${p.intimacy}"]`);
+          if (el) el.classList.add('active', rankClass(p.intimacy));
+        }
+      }
+    } else {
+      ['pf-id','pf-name','pf-primaryContact','pf-contactDetail','pf-jobCategories','pf-lastContactedAt','pf-notes'].forEach(i => { document.getElementById(i).value = ''; });
+      ['pf-contactTool','pf-type','pf-regularDistribution','pf-faceToFace','pf-contactStatus'].forEach(i => { document.getElementById(i).value = ''; });
+    }
+    document.getElementById('partner-modal').classList.add('active');
+  }
+  function closePartnerModal() {
+    document.getElementById('partner-modal').classList.remove('active');
+    editingPartnerId = null;
+  }
+
+  async function savePartner() {
+    const name = document.getElementById('pf-name').value.trim();
+    if (!name) { showToast('パートナー企業名は必須です', true); return; }
+    const id = editingPartnerId || `p_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const existing = editingPartnerId ? partnerObjs.find(p => p.id === id) : null;
+    const p = {
+      id,
+      createdAt: existing ? existing.createdAt : Date.now(),
+      updatedAt: Date.now(),
+      _v: 1,
+      name,
+      primaryContact: document.getElementById('pf-primaryContact').value.trim() || null,
+      contactTool: document.getElementById('pf-contactTool').value || null,
+      contactDetail: document.getElementById('pf-contactDetail').value.trim() || null,
+      jobCategories: document.getElementById('pf-jobCategories').value.trim() || null,
+      intimacy: readPartnerPicker('intimacy'),
+      type: document.getElementById('pf-type').value || null,
+      regularDistribution: document.getElementById('pf-regularDistribution').value || null,
+      lastContactedAt: document.getElementById('pf-lastContactedAt').value || null,
+      faceToFace: document.getElementById('pf-faceToFace').value || null,
+      contactStatus: document.getElementById('pf-contactStatus').value || null,
+      notes: document.getElementById('pf-notes').value.trim() || null
+    };
+    const ok = await savePartnerObjToStorage(p);
+    if (ok) {
+      const idx = partnerObjs.findIndex(x => x.id === id);
+      if (idx >= 0) partnerObjs[idx] = p; else partnerObjs.push(p);
+      // keep partners array (legacy) in sync
+      if (!partners.includes(name)) {
+        partners.push(name);
+        partners.sort((a, b) => a.localeCompare(b, 'ja'));
+        await savePartnersToStorage();
+      }
+      refreshPartnerDatalist();
+      renderPartners();
+      updateTabCounts();
+      closePartnerModal();
+      showToast(editingPartnerId ? '更新しました' : '登録しました');
+    }
+  }
+  async function confirmDeletePartner() {
+    if (!editingPartnerId) return;
+    const p = partnerObjs.find(x => x.id === editingPartnerId);
+    if (!confirm(`「${p?.name || 'このパートナー'}」を削除しますか？\n紐付く求職者の経路情報は残ります。`)) return;
+    const ok = await deletePartnerObjFromStorage(editingPartnerId);
+    if (ok) {
+      const removed = partnerObjs.find(x => x.id === editingPartnerId);
+      partnerObjs = partnerObjs.filter(x => x.id !== editingPartnerId);
+      // also remove from legacy array if no other partner has same name
+      if (removed && partners.includes(removed.name)) {
+        const stillExists = partnerObjs.some(x => x.name === removed.name);
+        if (!stillExists) {
+          partners = partners.filter(n => n !== removed.name);
+          await savePartnersToStorage();
+        }
+      }
+      refreshPartnerDatalist();
+      renderPartners();
+      updateTabCounts();
+      closePartnerModal();
+      showToast('削除しました');
+    }
+  }
+
+  function partnerCandidateCount(partnerName) {
+    return candidates.filter(c => c.source === 'partner' && c.partnerCompany === partnerName).length;
+  }
+  function daysSince(dateStr) {
+    if (!dateStr) return null;
+    try {
+      const d = new Date(dateStr); d.setHours(0,0,0,0);
+      const today = new Date(); today.setHours(0,0,0,0);
+      return Math.floor((today - d) / (1000 * 60 * 60 * 24));
+    } catch { return null; }
+  }
+  function intimacyLabel(v) { return v || '—'; }
+
+  function renderPartnerStats() {
+    const total = partnerObjs.length;
+    const aCount = partnerObjs.filter(p => p.intimacy === 'A').length;
+    const regular = partnerObjs.filter(p => p.regularDistribution === 'あり').length;
+    const totalCands = candidates.filter(c => c.source === 'partner').length;
+    const stale = partnerObjs.filter(p => {
+      const d = daysSince(p.lastContactedAt);
+      return d !== null && d >= 30;
+    }).length;
+    const ses = partnerObjs.filter(p => p.type === 'SES' || p.type === '複合').length;
+    document.getElementById('pstat-total').textContent = total;
+    document.getElementById('pstat-intimacy-a').textContent = aCount;
+    document.getElementById('pstat-regular').textContent = regular;
+    document.getElementById('pstat-candidates').textContent = totalCands;
+    document.getElementById('pstat-stale').textContent = stale;
+    document.getElementById('pstat-ses').textContent = ses;
+  }
+
+  function applyPartnerFilters(list) {
+    return list.filter(p => {
+      if (partnerFilters.intimacy !== 'all') {
+        const required = partnerFilters.intimacy;
+        const score = { A: 4, B: 3, C: 2, Z: 1 }[p.intimacy] || 0;
+        const requiredScore = { A: 4, B: 3, C: 2, Z: 1 }[required] || 0;
+        if (score < requiredScore) return false;
+      }
+      if (partnerFilters.type !== 'all') {
+        if (partnerFilters.type === 'SES' && p.type !== 'SES' && p.type !== '複合') return false;
+        if (partnerFilters.type === '営業' && p.type !== '営業' && p.type !== '複合') return false;
+        if (partnerFilters.type === '紹介' && p.type !== '紹介') return false;
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const hay = [p.name, p.primaryContact, p.notes, p.jobCategories].filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+  function applyPartnerSort(list) {
+    const sorted = [...list];
+    switch (partnerSortBy) {
+      case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name, 'ja')); break;
+      case 'intimacy': sorted.sort((a, b) => (({ A: 4, B: 3, C: 2, Z: 1 })[b.intimacy] || 0) - (({ A: 4, B: 3, C: 2, Z: 1 })[a.intimacy] || 0)); break;
+      case 'last-contact': sorted.sort((a, b) => (b.lastContactedAt || '').localeCompare(a.lastContactedAt || '')); break;
+      case 'cand-count': sorted.sort((a, b) => partnerCandidateCount(b.name) - partnerCandidateCount(a.name)); break;
+    }
+    return sorted;
+  }
+  function renderPartnerCard(p) {
+    const days = daysSince(p.lastContactedAt);
+    const isStale = days !== null && days >= 30;
+    const candCount = partnerCandidateCount(p.name);
+    const tags = [];
+    if (p.intimacy) tags.push({ label: '親密度 ' + p.intimacy, cls: 'intimacy-' + p.intimacy });
+    if (p.type) tags.push({ label: p.type, cls: 'type-' + p.type });
+    if (p.regularDistribution === 'あり') tags.push({ label: '定期配信', cls: 'regular' });
+    if (p.contactStatus === 'dormant') tags.push({ label: '休眠' });
+    if (p.contactStatus === 'ng') tags.push({ label: 'NG' });
+    return `
+      <div class="partner-card" onclick="openPartnerModal('${p.id}')">
+        <div class="partner-card-accent ${p.intimacy || ''}"></div>
+        <div class="partner-card-header">
+          <div class="partner-name">${escapeHtml(p.name)}</div>
+          <div class="partner-contact">${p.primaryContact ? escapeHtml(p.primaryContact) : '<span style="color: var(--ink-faint);">担当者未設定</span>'}${p.contactTool ? ' · ' + escapeHtml(p.contactTool) : ''}</div>
+          <div class="partner-meta">
+            ${tags.map(t => `<span class="partner-tag${t.cls ? ' ' + t.cls : ''}">${escapeHtml(t.label)}</span>`).join('')}
+          </div>
+        </div>
+        <div class="partner-card-body">
+          <div class="partner-stats">
+            <div class="partner-stat-row"><span class="partner-stat-key">取扱職種</span><span class="partner-stat-val ${p.jobCategories ? '' : 'empty'}">${p.jobCategories ? escapeHtml(p.jobCategories) : '—'}</span></div>
+            <div class="partner-stat-row"><span class="partner-stat-key">紐付き人材</span><span class="partner-stat-val">${candCount}名</span></div>
+            <div class="partner-stat-row"><span class="partner-stat-key">最終連絡</span><span class="partner-stat-val ${isStale ? 'stale' : (p.lastContactedAt ? '' : 'empty')}">${p.lastContactedAt ? p.lastContactedAt + (days !== null ? ` (${days}日前)` : '') : '—'}</span></div>
+            <div class="partner-stat-row"><span class="partner-stat-key">面談同席</span><span class="partner-stat-val ${p.faceToFace ? '' : 'empty'}">${p.faceToFace || '—'}</span></div>
+          </div>
+          ${p.notes ? `<div class="card-notes" style="margin-top: 12px;">${escapeHtml(p.notes)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+  function renderPartners() {
+    renderPartnerStats();
+    let filtered = applyPartnerFilters(partnerObjs);
+    filtered = applyPartnerSort(filtered);
+    const container = document.getElementById('partners-container');
+    if (filtered.length === 0) {
+      if (partnerObjs.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-mark">空</div><div class="empty-title">パートナーがまだ登録されていません</div><div class="empty-text">右上の「+ パートナー追加」から最初のパートナーを登録してください</div><button class="btn-primary" onclick="openPartnerModal()" style="background: var(--primary);">最初のパートナーを追加</button></div>`;
+      } else {
+        container.innerHTML = `<div class="empty-state"><div class="empty-mark">無</div><div class="empty-title">該当するパートナーがいません</div><div class="empty-text">フィルター条件を変更してみてください</div></div>`;
+      }
+      return;
+    }
+    container.innerHTML = `<div class="partner-grid">${filtered.map(renderPartnerCard).join('')}</div>`;
+  }
+
+  function setupPartnerUI() {
+    document.querySelectorAll('[data-pfilter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const f = btn.dataset.pfilter;
+        document.querySelectorAll(`[data-pfilter="${f}"]`).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        partnerFilters[f] = btn.dataset.value;
+        renderPartners();
+      });
+    });
+    const sortSel = document.getElementById('partner-sort');
+    if (sortSel) sortSel.addEventListener('change', () => { partnerSortBy = sortSel.value; renderPartners(); });
+    // partner intimacy picker
+    document.querySelectorAll('#partner-modal .rank-picker[data-pfield="intimacy"] .rank-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const picker = opt.closest('.rank-picker');
+        picker.querySelectorAll('.rank-option').forEach(o => o.classList.remove('active','s','a','b','c'));
+        opt.classList.add('active', rankClass(opt.dataset.value));
+      });
+    });
+  }
+
   // ============ Dashboard (Phase 3-5) ============
   let dashRange = 12;
   let dashView = 'month';
@@ -6671,6 +7269,7 @@
         jobs: jobs || [],
         proposals: (typeof proposals !== 'undefined' ? proposals : []),
         partners: partners || [],
+        partnerObjs: partnerObjs || [],
         assignments: assignments || []
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
@@ -6697,12 +7296,12 @@
       // Clear current storage
       const allKeys = await window.storage.list('', true);
       for (const k of (allKeys.keys || [])) {
-        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k === 'partners') {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k === 'partners') {
           try { await window.storage.delete(k, true); } catch (e) {}
         }
       }
       // Restore
-      let imported = { c: 0, j: 0, p: 0, pt: 0, a: 0 };
+      let imported = { c: 0, j: 0, p: 0, pt: 0, a: 0, pn: 0 };
       if (Array.isArray(data.candidates)) {
         for (const c of data.candidates) {
           if (c && c.id) { await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true); imported.c++; }
@@ -6727,7 +7326,12 @@
           if (a && a.id) { await window.storage.set(`asgn:${a.id}`, JSON.stringify(a), true); imported.a++; }
         }
       }
-      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/提案${imported.p}/パートナー${imported.pt}`);
+      if (Array.isArray(data.partnerObjs)) {
+        for (const p of data.partnerObjs) {
+          if (p && p.id) { await window.storage.set(`partner:${p.id}`, JSON.stringify(p), true); imported.pn++; }
+        }
+      }
+      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/提案${imported.p}/パートナー${imported.pn || imported.pt}`);
       // Reload page to refresh in-memory state cleanly
       setTimeout(() => location.reload(), 800);
     } catch (e) {
@@ -6793,7 +7397,18 @@
         }));
       } else if (kind === 'partners') {
         name = 'partners';
-        rows = (partners || []).map(p => ({ パートナー企業名: p }));
+        if (partnerObjs && partnerObjs.length) {
+          rows = partnerObjs.map(p => ({
+            id: p.id, パートナー企業名: p.name, 担当者: p.primaryContact,
+            連絡ツール: p.contactTool, 連絡先: p.contactDetail,
+            取扱職種: p.jobCategories, 親密度: p.intimacy, 種別: p.type,
+            定期配信: p.regularDistribution, 最終連絡日: p.lastContactedAt,
+            面談同席: p.faceToFace, 連絡状況: p.contactStatus, メモ: p.notes,
+            紐付き人材数: partnerCandidateCount(p.name)
+          }));
+        } else {
+          rows = (partners || []).map(p => ({ パートナー企業名: p }));
+        }
       } else if (kind === 'proposals') {
         name = 'proposals';
         const props = (typeof proposals !== 'undefined') ? proposals : [];
@@ -6838,7 +7453,7 @@
       const allKeys = await window.storage.list('', true);
       let n = 0;
       for (const k of (allKeys.keys || [])) {
-        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k === 'partners') {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k === 'partners') {
           try { await window.storage.delete(k, true); n++; } catch (e) {}
         }
       }
