@@ -2043,6 +2043,7 @@
       <div class="search-box">
         <input type="text" id="search" placeholder="検索…" />
       </div>
+      <button class="btn-ghost" id="data-btn" onclick="openDataModal()" title="データ管理（バックアップ/復元/CSV）" style="padding: 10px 16px;">▤ データ</button>
       <button class="btn-primary" id="add-btn" onclick="onAddClick()">新規追加</button>
     </div>
   </div>
@@ -2813,6 +2814,62 @@
 
 <datalist id="industry-list"></datalist>
 <datalist id="partner-list"></datalist>
+
+<!-- ===== Data Management Modal ===== -->
+<div class="modal-overlay" id="data-modal">
+  <div class="modal" style="max-width: 640px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-mark"></span>データ管理
+      </div>
+      <button class="modal-close" onclick="closeDataModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section">
+        <div class="form-section-title">全データのバックアップ</div>
+        <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
+          求職者・案件・提案・パートナーマスタを含む全データを単一の JSON ファイルとして書き出し/読み込みできます。<br>
+          機種変更時の引越し・複数端末でのデータ移動・バックアップ目的にご利用ください。
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-ghost" onclick="exportAllAsJSON()" style="padding: 10px 16px;">⬇ 全データを JSON で書き出す</button>
+          <label class="btn-ghost" style="padding: 10px 16px; cursor: pointer;">
+            ⬆ JSON を読み込む
+            <input type="file" id="json-import-input" accept=".json,application/json" style="display:none" onchange="importAllFromJSON(event)" />
+          </label>
+        </div>
+        <div id="data-stats" style="margin-top: 14px; padding: 12px 14px; background: var(--paper-soft); border: 1px solid var(--border); font-size: 12px; color: var(--ink-muted);"></div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">CSV エクスポート</div>
+        <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
+          Excel / Google スプレッドシートで開ける CSV 形式で書き出します（Shift-JIS BOM 付き UTF-8）。
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-ghost" onclick="exportCSV('candidates')" style="padding: 8px 14px; font-size: 12px;">求職者 CSV</button>
+          <button class="btn-ghost" onclick="exportCSV('jobs')" style="padding: 8px 14px; font-size: 12px;">案件 CSV</button>
+          <button class="btn-ghost" onclick="exportCSV('partners')" style="padding: 8px 14px; font-size: 12px;">パートナー CSV</button>
+          <button class="btn-ghost" onclick="exportCSV('proposals')" style="padding: 8px 14px; font-size: 12px;">提案 CSV</button>
+        </div>
+      </div>
+
+      <div class="form-section" style="margin-bottom: 0;">
+        <div class="form-section-title" style="color: var(--rank-c-fg); border-bottom-color: var(--rank-c-border);">危険な操作</div>
+        <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
+          現在の全データを削除します。事前に必ずバックアップを取ってから実行してください。
+        </p>
+        <button class="btn-danger" onclick="confirmClearAll()" style="padding: 10px 16px;">⚠ すべてのデータを削除</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left"></div>
+      <div class="modal-footer-right">
+        <button class="btn-ghost" onclick="closeDataModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="print-area"></div>
 
@@ -5478,6 +5535,209 @@
     document.getElementById('add-btn').textContent = '求職者を追加';
     render(); renderJobs(); updateTabCounts(); refreshMatchTarget();
   })();
+
+  // ============ Data Management (Phase 1) ============
+  const DATA_SCHEMA_VERSION = 1;
+
+  function openDataModal() {
+    document.getElementById('data-modal').classList.add('active');
+    updateDataStats();
+  }
+  function closeDataModal() {
+    document.getElementById('data-modal').classList.remove('active');
+  }
+  function updateDataStats() {
+    const candCount = (typeof candidates !== 'undefined' && Array.isArray(candidates)) ? candidates.length : 0;
+    const jobCount = (typeof jobs !== 'undefined' && Array.isArray(jobs)) ? jobs.length : 0;
+    const propCount = (typeof proposals !== 'undefined' && Array.isArray(proposals)) ? proposals.length : 0;
+    const partnerCount = (typeof partners !== 'undefined' && Array.isArray(partners)) ? partners.length : 0;
+    const el = document.getElementById('data-stats');
+    if (el) {
+      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerCount}</b>`;
+    }
+  }
+
+  function timestamp() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  }
+
+  function triggerDownload(filename, blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function exportAllAsJSON() {
+    try {
+      const payload = {
+        _schema: DATA_SCHEMA_VERSION,
+        _exportedAt: new Date().toISOString(),
+        _app: 'management-tool',
+        candidates: candidates || [],
+        jobs: jobs || [],
+        proposals: (typeof proposals !== 'undefined' ? proposals : []),
+        partners: partners || []
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+      triggerDownload(`management-tool-backup_${timestamp()}.json`, blob);
+      showToast('JSON を書き出しました');
+    } catch (e) {
+      console.error(e);
+      showToast('書き出しに失敗しました', true);
+    }
+  }
+
+  async function importAllFromJSON(ev) {
+    const file = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!file) return;
+    if (!confirm('現在のデータを読み込んだ内容で上書きします。続行しますか？\n(事前に「全データを JSON で書き出す」でバックアップ推奨)')) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data || typeof data !== 'object') throw new Error('不正なファイル形式');
+      if (data._app && data._app !== 'management-tool') {
+        if (!confirm('別アプリのデータの可能性があります。それでも読み込みますか？')) return;
+      }
+      // Clear current storage
+      const allKeys = await window.storage.list('', true);
+      for (const k of (allKeys.keys || [])) {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k === 'partners') {
+          try { await window.storage.delete(k, true); } catch (e) {}
+        }
+      }
+      // Restore
+      let imported = { c: 0, j: 0, p: 0, pt: 0 };
+      if (Array.isArray(data.candidates)) {
+        for (const c of data.candidates) {
+          if (c && c.id) { await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true); imported.c++; }
+        }
+      }
+      if (Array.isArray(data.jobs)) {
+        for (const j of data.jobs) {
+          if (j && j.id) { await window.storage.set(`job:${j.id}`, JSON.stringify(j), true); imported.j++; }
+        }
+      }
+      if (Array.isArray(data.proposals)) {
+        for (const p of data.proposals) {
+          if (p && p.id) { await window.storage.set(`prop:${p.id}`, JSON.stringify(p), true); imported.p++; }
+        }
+      }
+      if (Array.isArray(data.partners)) {
+        await window.storage.set('partners', JSON.stringify(data.partners), true);
+        imported.pt = data.partners.length;
+      }
+      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/提案${imported.p}/パートナー${imported.pt}`);
+      // Reload page to refresh in-memory state cleanly
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      console.error(e);
+      showToast('読込に失敗しました: ' + (e.message || ''), true);
+    }
+  }
+
+  // ============ CSV Export ============
+  function csvCell(v) {
+    if (v === null || v === undefined) return '';
+    let s = String(v);
+    s = s.replace(/\r?\n/g, ' ');
+    if (s.includes(',') || s.includes('"')) s = '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+  function toCSV(rows) {
+    if (!rows || !rows.length) return '';
+    const headers = Object.keys(rows[0]);
+    const lines = [headers.join(',')];
+    for (const row of rows) {
+      lines.push(headers.map(h => csvCell(row[h])).join(','));
+    }
+    return lines.join('\r\n');
+  }
+  function downloadCSV(filename, csv) {
+    // BOM for Excel UTF-8 compatibility
+    const bom = '﻿';
+    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' });
+    triggerDownload(filename, blob);
+  }
+
+  function exportCSV(kind) {
+    try {
+      let rows = [], name = '';
+      if (kind === 'candidates') {
+        name = 'candidates';
+        rows = (candidates || []).map(c => ({
+          id: c.id, 氏名: c.name, 面談日: c.interviewDate, 担当: c.recruiter,
+          現状: c.currentStatus, 経路: c.source, パートナー企業: c.partnerCompany,
+          売れそう: c.rankSell, 休まなそう: c.rankNotAbsent, 自走: c.rankSelfDriven, toCtoB: c.rankCtoB,
+          勤務形態: c.workStyle, ポジション: c.position, 顧客: c.customer,
+          稼働時間: c.workingHours, 開始希望日: c.startDate, 営業経験年: c.experienceYears,
+          希望単価: c.desiredRate, 希望単価モード: c.desiredRateMode, 希望最低: c.desiredRateMin,
+          提案単価: c.proposalRate, 提案単価モード: c.proposalRateMode,
+          ISアポ: c.isAppointments, IS架電: c.isCalls, IS達成: c.isAchievement,
+          FS商談: c.fsMeetings, FS受注率: c.fsWinRate, FS達成: c.fsAchievement,
+          メモ: c.notes, サービス: (c.services || []).map(s => s.name).join(' / '),
+          作成: c.createdAt ? new Date(c.createdAt).toISOString() : ''
+        }));
+      } else if (kind === 'jobs') {
+        name = 'jobs';
+        rows = (jobs || []).map(j => ({
+          id: j.id, 案件名: j.title, クライアント: j.client, 担当: j.recruiter, ステータス: j.status,
+          登録日: j.registeredDate, 募集期限: j.deadline, 開始希望: j.startDate,
+          勤務形態: j.reqWorkStyle, ポジション: j.reqPosition, 顧客: j.reqCustomer,
+          稼働時間: j.reqWorkingHours, 必要経験年: j.reqExperienceYears, 歓迎業界: j.preferredIndustry,
+          クライアント単価: j.clientRate, クライアント単価モード: j.clientRateMode,
+          提案可能上限: j.proposalRateMax, 提案可能下限: j.proposalRateMin, 提案可能モード: j.proposalRateMode,
+          求める売れそう: j.reqRankSell, 求める休まなそう: j.reqRankNotAbsent,
+          求める自走: j.reqRankSelfDriven, 求めるtoCtoB: j.reqRankCtoB,
+          背景: j.background
+        }));
+      } else if (kind === 'partners') {
+        name = 'partners';
+        rows = (partners || []).map(p => ({ パートナー企業名: p }));
+      } else if (kind === 'proposals') {
+        name = 'proposals';
+        const props = (typeof proposals !== 'undefined') ? proposals : [];
+        rows = props.map(p => ({
+          id: p.id, 案件ID: p.jobId, 候補者ID: p.candId,
+          案件名: (jobs.find(j => j.id === p.jobId) || {}).title || '',
+          候補者名: (candidates.find(c => c.id === p.candId) || {}).name || '',
+          ステータス: p.status, メモ: p.notes,
+          作成: p.createdAt ? new Date(p.createdAt).toISOString() : '',
+          更新: p.updatedAt ? new Date(p.updatedAt).toISOString() : ''
+        }));
+      }
+      if (!rows.length) { showToast(`書き出すデータがありません (${name})`, true); return; }
+      const csv = toCSV(rows);
+      downloadCSV(`${name}_${timestamp()}.csv`, csv);
+      showToast(`${name}.csv を書き出しました (${rows.length}件)`);
+    } catch (e) {
+      console.error(e);
+      showToast('CSV 書き出しに失敗しました', true);
+    }
+  }
+
+  async function confirmClearAll() {
+    if (!confirm('本当に全データを削除しますか？この操作は取り消せません。\n(先に「全データを JSON で書き出す」でバックアップを取ることを強く推奨)')) return;
+    if (!confirm('本当に削除します。もう一度だけ確認します。よろしいですか？')) return;
+    try {
+      const allKeys = await window.storage.list('', true);
+      let n = 0;
+      for (const k of (allKeys.keys || [])) {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k === 'partners') {
+          try { await window.storage.delete(k, true); n++; } catch (e) {}
+        }
+      }
+      showToast(`${n} 件のデータを削除しました`);
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      console.error(e);
+      showToast('削除に失敗しました', true);
+    }
+  }
 </script>
 </body>
 </html>
