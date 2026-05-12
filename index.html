@@ -2899,7 +2899,7 @@
       <!-- 面談メモエリア (自由記入) -->
       <div class="form-section" style="background: #FBF9F1; padding: 14px 16px; border: 1px solid var(--border-strong); margin-bottom: 28px;">
         <div class="form-section-title" style="margin-bottom: 8px; padding-bottom: 0; border: none;">📝 面談メモ <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入)</span></div>
-        <textarea id="f-rawMemo" placeholder="面談中に自由に記入できます。" rows="8" style="line-height: 1.7; font-size: 13px; border-color: var(--border-strong);"></textarea>
+        <textarea id="f-rawMemo" placeholder="面談中に自由に記入できます。" rows="18" style="line-height: 1.7; font-size: 13px; border-color: var(--border-strong); min-height: 240px; max-height: 70vh; resize: vertical;" oninput="autoGrowMemo(this)"></textarea>
       </div>
 
       <!-- 基本情報 -->
@@ -4385,6 +4385,14 @@
     if (typeof refreshMatchTarget === 'function') refreshMatchTarget();
   }
 
+  // ============ Memo Auto-Grow ============
+  function autoGrowMemo(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    const max = window.innerHeight * 0.7;
+    el.style.height = Math.min(el.scrollHeight + 4, max) + 'px';
+  }
+
   // ============ Memo Template & Auto-Extract ============
   const MEMO_TEMPLATE = `■ 基本情報
 氏名:
@@ -4807,7 +4815,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         document.getElementById('f-rankCtoB').value = c.rankCtoB || '';
         document.getElementById('f-notes').value = c.notes || '';
         const memoEl = document.getElementById('f-rawMemo');
-        if (memoEl) memoEl.value = c.rawMemo || '';
+        if (memoEl) { memoEl.value = c.rawMemo || ''; autoGrowMemo(memoEl); }
         document.getElementById('f-partnerCompany').value = c.partnerCompany || '';
         const partnerSel = document.getElementById('f-partnerSelect');
         if (partnerSel) partnerSel.value = (c.partnerCompany && partners.includes(c.partnerCompany)) ? c.partnerCompany : '';
