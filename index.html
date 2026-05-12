@@ -4561,19 +4561,20 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     if (!rate) {
       m = memo.match(/時給\s*([\d,]+)\s*円?\s*[〜~~–-]?\s*([\d,]+)?\s*円?/);
       if (m) {
-      const min = m[1].replace(/,/g,'');
-      const max = m[2] ? m[2].replace(/,/g,'') : null;
-      if (max) { rate = max; rateMin = min; }
-      else rate = min;
-      rateMode = 'hourly';
-    } else {
-      m = memo.match(/月給?\s*([\d,]+)\s*万?\s*[〜~~–-]?\s*([\d,]+)?\s*万?\s*円?/);
-      if (m) {
-        const v1 = m[1].replace(/,/g,'');
-        const v2 = m[2] ? m[2].replace(/,/g,'') : null;
-        // assume 万円 if value is small
-        if (parseInt(v1) < 200) { rate = v2 || v1; rateMin = v2 ? v1 : null; rateMode = 'monthly'; }
-        else { rate = v1; rateMode = 'monthly'; /* assume yen */ rate = Math.round(parseInt(v1)/10000); }
+        const min = m[1].replace(/,/g,'');
+        const max = m[2] ? m[2].replace(/,/g,'') : null;
+        if (max) { rate = max; rateMin = min; }
+        else rate = min;
+        rateMode = 'hourly';
+      } else {
+        m = memo.match(/月給?\s*([\d,]+)\s*万?\s*[〜~~–-]?\s*([\d,]+)?\s*万?\s*円?/);
+        if (m) {
+          const v1 = m[1].replace(/,/g,'');
+          const v2 = m[2] ? m[2].replace(/,/g,'') : null;
+          // assume 万円 if value is small
+          if (parseInt(v1) < 200) { rate = v2 || v1; rateMin = v2 ? v1 : null; rateMode = 'monthly'; }
+          else { rate = v1; rateMode = 'monthly'; /* assume yen */ rate = Math.round(parseInt(v1)/10000); }
+        }
       }
     }
     if (rate) {
