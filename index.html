@@ -2896,17 +2896,10 @@
     <div class="modal-body">
       <input type="hidden" id="f-id" />
 
-      <!-- 面談メモエリア (フリーフォーム→自動抽出) -->
+      <!-- 面談メモエリア (自由記入) -->
       <div class="form-section" style="background: #FBF9F1; padding: 14px 16px; border: 1px solid var(--border-strong); margin-bottom: 28px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <div class="form-section-title" style="margin-bottom: 0; padding-bottom: 0; border: none;">📝 面談メモ <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(ヒアリング用)</span></div>
-          <div style="display: flex; gap: 6px;">
-            <button type="button" class="btn-ghost" onclick="insertMemoTemplate()" style="padding: 6px 10px; font-size: 11px;">📋 テンプレ挿入</button>
-            <button type="button" class="btn-ghost" onclick="extractFromMemo()" style="padding: 6px 12px; font-size: 11px; background: var(--accent); color: white; border-color: var(--accent);">✨ メモから自動入力</button>
-          </div>
-        </div>
-        <textarea id="f-rawMemo" placeholder="「📋 テンプレ挿入」を押すと、ヒアリング項目テンプレが入ります。各項目の : の後ろに記入し「✨ メモから自動入力」で各フィールドへ自動反映されます。&#10;&#10;フリー記入もOK (例: 山田太郎さん 35歳 神奈川県 営業8年 SaaS IS経験 時給3000円〜 月160hリモート 3月から)" rows="14" style="line-height: 1.7; font-size: 13px; border-color: var(--border-strong); font-family: 'Zen Kaku Gothic New', monospace;"></textarea>
-        <div id="memo-extract-result" style="margin-top: 8px; font-size: 11px; color: var(--ink-muted); min-height: 14px;"></div>
+        <div class="form-section-title" style="margin-bottom: 8px; padding-bottom: 0; border: none;">📝 面談メモ <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入)</span></div>
+        <textarea id="f-rawMemo" placeholder="面談中に自由に記入できます。" rows="8" style="line-height: 1.7; font-size: 13px; border-color: var(--border-strong);"></textarea>
       </div>
 
       <!-- 基本情報 -->
@@ -4819,11 +4812,8 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
-      // 新規時はテンプレを自動挿入
       const memoEl = document.getElementById('f-rawMemo');
-      if (memoEl) memoEl.value = MEMO_TEMPLATE;
-      const ec = document.getElementById('memo-extract-result');
-      if (ec) ec.textContent = '';
+      if (memoEl) memoEl.value = '';
       const partnerSelNew = document.getElementById('f-partnerSelect');
       if (partnerSelNew) partnerSelNew.value = '';
       const today = new Date();
