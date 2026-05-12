@@ -6623,6 +6623,14 @@
     // Load cost records
     costs = await loadCosts();
 
+    // Auto-seed: 初回起動 (assignments がゼロ) なら スプシデータを自動取り込み
+    try {
+      const seededFlag = await window.storage.get('_seeded_sheet_data', true).catch(() => null);
+      if (!seededFlag && assignments.length === 0) {
+        await autoSeedFromSheet();
+      }
+    } catch (e) { console.warn('Auto-seed check failed:', e); }
+
     // Load partner objects (Phase 6) + migrate legacy name list
     partnerObjs = await loadPartnerObjs();
     await migratePartnerNamesToObjects();
@@ -6992,7 +7000,7 @@
     const container = document.getElementById('assignments-container');
     if (filtered.length === 0) {
       if (assignments.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-mark">空</div><div class="empty-title">稼働中の人材がまだ登録されていません</div><div class="empty-text">フィルター上部の「+ 稼働を登録」ボタンから追加してください</div><button class="btn-primary" onclick="openAssignmentModal()" style="background: var(--primary);">最初の稼働を登録</button></div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-mark">空</div><div class="empty-title">稼働中の人材がまだ登録されていません</div><div class="empty-text">スプシから一括取り込み or 新規登録できます</div><div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px;"><button class="btn-primary" onclick="seedFromSheetManually()" style="background: var(--primary);">📥 スプシから稼働人材を取り込む</button><button class="btn-ghost" onclick="openAssignmentModal()" style="padding: 10px 16px;">+ 新規登録</button></div></div>`;
       } else {
         container.innerHTML = `<div class="empty-state"><div class="empty-mark">無</div><div class="empty-title">該当する稼働がありません</div><div class="empty-text">フィルター条件を変更してみてください</div></div>`;
       }
@@ -8415,6 +8423,72 @@
       console.error(e);
       if (statusEl) statusEl.textContent = '✗ ' + (e.message || 'エラー');
       showToast('取り込みに失敗しました: ' + (e.message || ''), true);
+    }
+  }
+
+  async function seedFromSheetManually() {
+    if (!confirm('スプシから稼働人材データを取り込みます。続行しますか？')) return;
+    // Force re-seed
+    try { await window.storage.delete('_seeded_sheet_data', true); } catch (e) {}
+    await autoSeedFromSheet();
+    renderAssignments(); render(); renderJobs(); updateTabCounts();
+  }
+
+  async function autoSeedFromSheet() {
+    try {
+      const res = await fetch('./sheet-data-import.json?_t=' + Date.now());
+      if (!res.ok) return;
+      const data = await res.json();
+      let added = { c: 0, j: 0, a: 0, r: 0, cs: 0 };
+      for (const c of (data.candidates || [])) {
+        if (!c || !c.id) continue;
+        const idx = candidates.findIndex(x => x.id === c.id);
+        if (idx < 0) {
+          await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true);
+          candidates.push(c); added.c++;
+        }
+      }
+      for (const j of (data.jobs || [])) {
+        if (!j || !j.id) continue;
+        const idx = jobs.findIndex(x => x.id === j.id);
+        if (idx < 0) {
+          await window.storage.set(`job:${j.id}`, JSON.stringify(j), true);
+          jobs.push(j); added.j++;
+        }
+      }
+      for (const a of (data.assignments || [])) {
+        if (!a || !a.id) continue;
+        const idx = assignments.findIndex(x => x.id === a.id);
+        if (idx < 0) {
+          await window.storage.set(`asgn:${a.id}`, JSON.stringify(a), true);
+          assignments.push(a); added.a++;
+        }
+      }
+      for (const r of (data.revenues || [])) {
+        if (!r || !r.id) continue;
+        const idx = revenues.findIndex(x => x.id === r.id);
+        if (idx < 0) {
+          await window.storage.set(`rev:${r.id}`, JSON.stringify(r), true);
+          revenues.push(r); added.r++;
+        }
+      }
+      for (const c of (data.costs || [])) {
+        if (!c || !c.id) continue;
+        const idx = costs.findIndex(x => x.id === c.id);
+        if (idx < 0) {
+          await window.storage.set(`cst:${c.id}`, JSON.stringify(c), true);
+          costs.push(c); added.cs++;
+        }
+      }
+      // Set flag so we don't auto-seed again
+      await window.storage.set('_seeded_sheet_data', '1', true);
+      console.log('Auto-seeded from sheet:', added);
+      // Quietly inform user
+      setTimeout(() => {
+        showToast(`スプシから自動登録: 稼働${added.a}件 / 求職者${added.c}名 / 売上${added.r}件 / 原価${added.cs}件`);
+      }, 600);
+    } catch (e) {
+      console.warn('Auto-seed failed:', e);
     }
   }
 
