@@ -3387,6 +3387,23 @@
         </div>
       </div>
 
+      <!-- 必須条件・歓迎条件 -->
+      <div class="form-section">
+        <div class="form-section-title">条件 (絶対 / 歓迎)</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label style="color: var(--rank-c-fg); font-weight: 600;">⚑ 絶対条件（必須・MUST）</label>
+            <textarea id="jf-mustHave" placeholder="例: ・社会人経験3年以上&#10;・日本語ネイティブレベル&#10;・SaaS の IS 経験 1年以上" style="border-left: 3px solid var(--rank-c-border);"></textarea>
+            <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;">この条件を満たさない人材は提案不可</span>
+          </div>
+          <div class="form-field">
+            <label style="color: #2C7A4A; font-weight: 600;">★ 歓迎条件（WANT）</label>
+            <textarea id="jf-niceToHave" placeholder="例: ・販売企画・営業企画の業務経験&#10;・EC サイト運用経験&#10;・B2C 向けハードウェア製品の販売経験" style="border-left: 3px solid #5DA37A;"></textarea>
+            <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;">あれば優遇 / 加点要素</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 募集背景・メモ -->
       <div class="form-section">
         <div class="form-section-title">募集背景・メモ</div>
@@ -4945,7 +4962,7 @@
       if (jobFilters.work !== 'all') { if (j.reqWorkStyle && j.reqWorkStyle !== 'any' && j.reqWorkStyle !== jobFilters.work) return false; }
       if (jobFilters.pos !== 'all') { if (j.reqPosition && j.reqPosition !== 'both' && j.reqPosition !== jobFilters.pos) return false; }
       if (q) {
-        const match = (j.title || '').toLowerCase().includes(q) || (j.client || '').toLowerCase().includes(q) || (j.recruiter || '').toLowerCase().includes(q) || (j.background || '').toLowerCase().includes(q) || (j.preferredIndustry || '').toLowerCase().includes(q) || String(j.caseNo || '').toLowerCase().includes(q);
+        const match = (j.title || '').toLowerCase().includes(q) || (j.client || '').toLowerCase().includes(q) || (j.recruiter || '').toLowerCase().includes(q) || (j.background || '').toLowerCase().includes(q) || (j.preferredIndustry || '').toLowerCase().includes(q) || String(j.caseNo || '').toLowerCase().includes(q) || (j.mustHave || '').toLowerCase().includes(q) || (j.niceToHave || '').toLowerCase().includes(q);
         if (!match) return false;
       }
       return true;
@@ -5023,6 +5040,10 @@
       </div>
       <div style="font-size: 11px; color: var(--ink-muted); margin: 8px 0; padding: 6px 10px; background: var(--paper-soft); border: 1px solid var(--border);"><span style="color: var(--ink-faint); margin-right: 6px;">単価</span>${rateLine}</div>
       <div class="tags">${tags.map(t => `<span class="tag${t.accent ? ' accent' : ''}">${t.label}</span>`).join('')}${j.preferredIndustry ? `<span class="tag" style="background: var(--accent-soft); color: var(--accent); border-color: var(--accent);">業界:${escapeHtml(j.preferredIndustry)}</span>` : ''}</div>
+      ${j.mustHave || j.niceToHave ? `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 11px; line-height: 1.5;">
+        ${j.mustHave ? `<div style="padding: 6px 10px; background: var(--rank-c-bg); border-left: 3px solid var(--rank-c-border); margin-bottom: 4px;"><b style="color: var(--rank-c-fg); font-size: 10px; letter-spacing: 0.08em;">⚑ 必須</b><div style="color: var(--ink); white-space: pre-wrap; margin-top: 2px;">${escapeHtml(j.mustHave.length > 100 ? j.mustHave.substring(0, 100) + '…' : j.mustHave)}</div></div>` : ''}
+        ${j.niceToHave ? `<div style="padding: 6px 10px; background: #E8F2EA; border-left: 3px solid #5DA37A;"><b style="color: #2C7A4A; font-size: 10px; letter-spacing: 0.08em;">★ 歓迎</b><div style="color: var(--ink); white-space: pre-wrap; margin-top: 2px;">${escapeHtml(j.niceToHave.length > 100 ? j.niceToHave.substring(0, 100) + '…' : j.niceToHave)}</div></div>` : ''}
+      </div>` : ''}
       ${jobProposals.length ? renderProposalListForJob(j.id, jobProposals) : ''}
       ${j.background ? `<div class="card-notes" style="margin-top: 12px;">${escapeHtml(j.background)}</div>` : ''}
       </div></div>`;
@@ -5074,13 +5095,15 @@
         document.getElementById('jf-preferredIndustry').value = j.preferredIndustry || '';
         document.getElementById('jf-reqRankCtoB').value = j.reqRankCtoB || '';
         document.getElementById('jf-background').value = j.background || '';
+        document.getElementById('jf-mustHave').value = j.mustHave || '';
+        document.getElementById('jf-niceToHave').value = j.niceToHave || '';
         ['reqRankSell', 'reqRankNotAbsent', 'reqRankSelfDriven'].forEach(field => { const v = j[field]; if (v) { const el = document.querySelector(`#job-form-modal .rank-picker[data-jfield="${field}"] .rank-option[data-value="${v}"]`); if (el) el.classList.add('active', rankClass(v)); } });
         ['reqWorkStyle', 'reqPosition', 'reqCustomer'].forEach(field => { const v = j[field]; if (v) { const el = document.querySelector(`#job-form-modal .toggle-group[data-jfield="${field}"] .toggle-option[data-value="${v}"]`); if (el) el.classList.add('active'); } });
         loadJobRatesIntoForm(j);
       }
     } else {
       document.getElementById('jf-id').value = '';
-      ['jf-caseNo','jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background','jf-positionsWanted'].forEach(id => document.getElementById(id).value = '');
+      ['jf-caseNo','jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background','jf-positionsWanted','jf-mustHave','jf-niceToHave'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('jf-status').value = 'open';
       const today = new Date();
       document.getElementById('jf-registeredDate').value = today.toISOString().split('T')[0];
@@ -5183,6 +5206,8 @@
       proposalRateMin: parseFloat(document.querySelector('.job-rate-amount-min[data-target="candProp"]').value) || null,
       proposalRateMode: jobRateState.candProp.mode,
       background: document.getElementById('jf-background').value.trim() || null,
+      mustHave: document.getElementById('jf-mustHave').value.trim() || null,
+      niceToHave: document.getElementById('jf-niceToHave').value.trim() || null,
     };
     const ok = await saveJobToStorage(j);
     if (ok) {
@@ -5303,7 +5328,18 @@
         <dt>顧客</dt><dd>${j.reqCustomer ? customerLabel(j.reqCustomer) : '<span class="empty">不問</span>'}</dd>
         <dt>必要経験年数</dt><dd>${j.reqExperienceYears ? j.reqExperienceYears + ' 年以上' : '<span class="empty">不問</span>'}</dd>
         <dt>歓迎業界</dt><dd>${safe(j.preferredIndustry)}</dd>
-      </dl></div>${rankBlock}${rateBlock}${assignmentsBlock}${proposalsBlock}${j.background ? `<div class="detail-section"><h3>募集背景・メモ</h3><div class="notes-block">${escapeHtml(j.background)}</div></div>` : ''}`;
+      </dl></div>${rankBlock}${rateBlock}
+      ${j.mustHave || j.niceToHave ? `<div class="detail-section"><h3>条件</h3>
+        ${j.mustHave ? `<div style="padding: 12px 16px; background: var(--rank-c-bg); border-left: 4px solid var(--rank-c-border); margin-bottom: 10px;">
+          <div style="font-size: 11px; color: var(--rank-c-fg); font-weight: 600; letter-spacing: 0.08em; margin-bottom: 6px;">⚑ 絶対条件 (必須)</div>
+          <div style="white-space: pre-wrap; line-height: 1.7; font-size: 13px;">${escapeHtml(j.mustHave)}</div>
+        </div>` : ''}
+        ${j.niceToHave ? `<div style="padding: 12px 16px; background: #E8F2EA; border-left: 4px solid #5DA37A;">
+          <div style="font-size: 11px; color: #2C7A4A; font-weight: 600; letter-spacing: 0.08em; margin-bottom: 6px;">★ 歓迎条件 (WANT)</div>
+          <div style="white-space: pre-wrap; line-height: 1.7; font-size: 13px;">${escapeHtml(j.niceToHave)}</div>
+        </div>` : ''}
+      </div>` : ''}
+      ${assignmentsBlock}${proposalsBlock}${j.background ? `<div class="detail-section"><h3>募集背景・メモ</h3><div class="notes-block">${escapeHtml(j.background)}</div></div>` : ''}`;
     document.getElementById('job-detail-body').innerHTML = html;
     document.getElementById('job-detail-edit-btn').onclick = () => { closeJobDetail(); openJobModal(id); };
     document.getElementById('job-detail-match-btn').onclick = () => { closeJobDetail(); switchTab('matching'); matchMode = 'job-to-cand'; document.querySelectorAll('.match-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mmode === matchMode)); refreshMatchTarget(); document.getElementById('match-target').value = id; renderMatching(); };
@@ -8380,6 +8416,7 @@
           提案可能上限: j.proposalRateMax, 提案可能下限: j.proposalRateMin, 提案可能モード: j.proposalRateMode,
           求める売れそう: j.reqRankSell, 求める休まなそう: j.reqRankNotAbsent,
           求める自走: j.reqRankSelfDriven, 求めるtoCtoB: j.reqRankCtoB,
+          必須条件: j.mustHave, 歓迎条件: j.niceToHave,
           背景: j.background
         }));
       } else if (kind === 'partners') {
