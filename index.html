@@ -3431,6 +3431,16 @@
         </div>
       </div>
 
+      <!-- 福利厚生・タグ -->
+      <div class="form-section">
+        <div class="form-section-title">案件タグ (該当するものを選択)</div>
+        <div id="jf-benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px;"></div>
+        <div style="margin-top: 10px; display: flex; gap: 6px; align-items: center;">
+          <input type="text" id="jf-benefits-custom" placeholder="その他のタグを追加 (Enterで追加)" style="flex: 1; padding: 6px 10px; font-size: 12px;" />
+          <button type="button" class="btn-ghost" onclick="addCustomBenefit()" style="padding: 6px 14px; font-size: 11px;">+ 追加</button>
+        </div>
+      </div>
+
       <!-- 募集背景・メモ -->
       <div class="form-section">
         <div class="form-section-title">募集背景・メモ</div>
@@ -5412,6 +5422,63 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     catch (e) { return false; }
   }
   function jobStatusLabel(s) { return { open: '募集中', matching: 'マッチング中', filled: '受注済み', closed: 'クローズ' }[s] || '—'; }
+
+  // ============ Job Benefits (タグ) ============
+  const BENEFIT_OPTIONS = [
+    '副業・WワークOK', '服装自由', 'フルリモート可', '一部リモート可', 'フル出社',
+    '即日開始可', '短期(3ヶ月以内)', '長期(6ヶ月以上)', '時間自由', '週3日OK', '週4日OK',
+    '経験者歓迎', '未経験OK', 'ブランクOK', '学歴不問', '女性活躍中', '主婦・主夫歓迎',
+    '成果報酬あり', 'インセンティブあり', '固定報酬', '研修あり', '面接1回'
+  ];
+
+  function renderBenefitsGrid(selected) {
+    const grid = document.getElementById('jf-benefits-grid');
+    if (!grid) return;
+    const sel = new Set(selected || []);
+    // Show all default options + any custom from selected
+    const all = [...BENEFIT_OPTIONS];
+    (selected || []).forEach(b => { if (!all.includes(b)) all.push(b); });
+    grid.innerHTML = all.map(b => `
+      <label style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: ${sel.has(b) ? 'var(--accent-soft)' : 'var(--paper-soft)'}; border: 1px solid ${sel.has(b) ? 'var(--accent)' : 'var(--border)'}; cursor: pointer; font-size: 12px; color: ${sel.has(b) ? 'var(--accent)' : 'var(--ink)'};">
+        <input type="checkbox" value="${escapeAttr(b)}" ${sel.has(b) ? 'checked' : ''} onchange="toggleBenefit(this)" style="margin: 0;" />
+        ${escapeHtml(b)}
+      </label>
+    `).join('');
+  }
+  function toggleBenefit(input) {
+    const label = input.parentElement;
+    if (input.checked) {
+      label.style.background = 'var(--accent-soft)';
+      label.style.borderColor = 'var(--accent)';
+      label.style.color = 'var(--accent)';
+    } else {
+      label.style.background = 'var(--paper-soft)';
+      label.style.borderColor = 'var(--border)';
+      label.style.color = 'var(--ink)';
+    }
+  }
+  function addCustomBenefit() {
+    const input = document.getElementById('jf-benefits-custom');
+    const val = (input.value || '').trim();
+    if (!val) return;
+    const grid = document.getElementById('jf-benefits-grid');
+    if (grid.querySelector(`input[value="${val.replace(/"/g, '\\"')}"]`)) {
+      showToast('既に存在するタグです', true); return;
+    }
+    const current = readSelectedBenefits();
+    current.push(val);
+    renderBenefitsGrid(current);
+    input.value = '';
+    // Re-check the new one
+    setTimeout(() => {
+      const newCb = grid.querySelector(`input[value="${val.replace(/"/g, '\\"')}"]`);
+      if (newCb) { newCb.checked = true; toggleBenefit(newCb); }
+    }, 0);
+  }
+  function readSelectedBenefits() {
+    const checks = document.querySelectorAll('#jf-benefits-grid input[type="checkbox"]:checked');
+    return Array.from(checks).map(c => c.value);
+  }
   function reqWorkStyleLabel(s) { if (s === 'any') return '不問'; return workStyleLabel(s); }
   function formatRateBrief(amount, mode, hours) { if (!amount) return '—'; hours = hours || DEFAULT_HOURS; if (mode === 'hourly') return formatYen(amount) + '/時'; return formatMan(rateToMonthlyYen(amount, mode, hours)); }
 
@@ -5522,6 +5589,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
                 <span class="tag" style="font-size: 12px; padding: 3px 10px; background: var(--paper-soft); color: var(--ink); border-color: var(--border-strong); font-weight: 500;">${rateLine || '単価未設定'}</span>
                 <span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>
                 ${staffingBadge}
+                ${(j.benefits && j.benefits.length) ? j.benefits.slice(0, 3).map(b => `<span style="display: inline-block; padding: 2px 10px; background: #F0F0F0; color: var(--ink); border-radius: 14px; font-size: 11px; font-weight: 500;">${escapeHtml(b)}</span>`).join('') + (j.benefits.length > 3 ? `<span style="font-size: 11px; color: var(--ink-faint);">+${j.benefits.length - 3}</span>` : '') : ''}
               </div>
             </div>
             <div onclick="event.stopPropagation()" style="display: flex; gap: 4px;">
@@ -5596,6 +5664,11 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           ${j.deadline ? `<span class="tag" style="${isUrgent ? 'color: var(--rank-c-fg);' : ''}">期限 ${formatDate(j.deadline)}</span>` : ''}
           ${j.startDate ? `<span class="tag">開始 ${formatDate(j.startDate)}</span>` : ''}
         </div>
+
+        <!-- 福利厚生・案件タグ (Indeed風) -->
+        ${(j.benefits && j.benefits.length) ? `<div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; gap: 6px; flex-wrap: wrap;">
+          ${j.benefits.map(b => `<span style="display: inline-block; padding: 5px 12px; background: #F0F0F0; color: var(--ink); border-radius: 16px; font-size: 12px; font-weight: 500;">${escapeHtml(b)}</span>`).join('')}
+        </div>` : ''}
 
         <!-- 必須/歓迎条件 -->
         ${j.mustHave || j.niceToHave ? `<div style="margin-top: 18px;">
@@ -5679,13 +5752,15 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         document.getElementById('jf-background').value = j.background || '';
         document.getElementById('jf-mustHave').value = j.mustHave || '';
         document.getElementById('jf-niceToHave').value = j.niceToHave || '';
+        renderBenefitsGrid(j.benefits || []);
         ['reqRankSell', 'reqRankNotAbsent', 'reqRankSelfDriven'].forEach(field => { const v = j[field]; if (v) { const el = document.querySelector(`#job-form-modal .rank-picker[data-jfield="${field}"] .rank-option[data-value="${v}"]`); if (el) el.classList.add('active', rankClass(v)); } });
         ['reqWorkStyle', 'reqPosition', 'reqCustomer'].forEach(field => { const v = j[field]; if (v) { const el = document.querySelector(`#job-form-modal .toggle-group[data-jfield="${field}"] .toggle-option[data-value="${v}"]`); if (el) el.classList.add('active'); } });
         loadJobRatesIntoForm(j);
       }
     } else {
       document.getElementById('jf-id').value = '';
-      ['jf-caseNo','jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background','jf-positionsWanted','jf-mustHave','jf-niceToHave'].forEach(id => document.getElementById(id).value = '');
+      ['jf-caseNo','jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background','jf-positionsWanted','jf-mustHave','jf-niceToHave','jf-benefits-custom'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      renderBenefitsGrid([]);
       document.getElementById('jf-status').value = 'open';
       const today = new Date();
       document.getElementById('jf-registeredDate').value = today.toISOString().split('T')[0];
@@ -5790,6 +5865,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       background: document.getElementById('jf-background').value.trim() || null,
       mustHave: document.getElementById('jf-mustHave').value.trim() || null,
       niceToHave: document.getElementById('jf-niceToHave').value.trim() || null,
+      benefits: readSelectedBenefits(),
     };
     const ok = await saveJobToStorage(j);
     if (ok) {
@@ -5911,6 +5987,11 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         <dt>必要経験年数</dt><dd>${j.reqExperienceYears ? j.reqExperienceYears + ' 年以上' : '<span class="empty">不問</span>'}</dd>
         <dt>歓迎業界</dt><dd>${safe(j.preferredIndustry)}</dd>
       </dl></div>${rankBlock}${rateBlock}
+      ${(j.benefits && j.benefits.length) ? `<div class="detail-section"><h3>案件タグ</h3>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          ${j.benefits.map(b => `<span style="display: inline-block; padding: 5px 14px; background: #F0F0F0; color: var(--ink); border-radius: 16px; font-size: 13px; font-weight: 500;">${escapeHtml(b)}</span>`).join('')}
+        </div>
+      </div>` : ''}
       ${j.mustHave || j.niceToHave ? `<div class="detail-section"><h3>条件</h3>
         ${j.mustHave ? `<div style="padding: 12px 16px; background: var(--rank-c-bg); border-left: 4px solid var(--rank-c-border); margin-bottom: 10px;">
           <div style="font-size: 11px; color: var(--rank-c-fg); font-weight: 600; letter-spacing: 0.08em; margin-bottom: 6px;">⚑ 絶対条件 (必須)</div>
