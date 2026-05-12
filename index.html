@@ -2586,6 +2586,17 @@
     <div class="filter-section">
       <div class="filter-row">
         <div class="filter-group">
+          <span class="filter-group-label">ステータス</span>
+          <button class="chip active" data-filter="status" data-value="all">全て</button>
+          <button class="chip" data-filter="status" data-value="new">面談前</button>
+          <button class="chip" data-filter="status" data-value="interviewed">面談済</button>
+          <button class="chip" data-filter="status" data-value="proposing">提案中</button>
+          <button class="chip" data-filter="status" data-value="active">稼働中</button>
+          <button class="chip" data-filter="status" data-value="ended">終了</button>
+          <button class="chip" data-filter="status" data-value="ng">NG</button>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
           <span class="filter-group-label">最低ランク</span>
           <button class="chip active" data-filter="rank" data-value="all">全て</button>
           <button class="chip" data-filter="rank" data-value="A">A以上</button>
@@ -2919,7 +2930,20 @@
             <input type="text" id="f-recruiter" placeholder="鈴木" />
           </div>
           <div class="form-field">
-            <label>現在の状況</label>
+            <label>求職者ステータス <span style="color: var(--accent);">*</span></label>
+            <select id="f-status">
+              <option value="">選択してください</option>
+              <option value="new">面談前</option>
+              <option value="interviewed">面談済み</option>
+              <option value="proposing">提案中</option>
+              <option value="active">稼働中</option>
+              <option value="paused">一時停止</option>
+              <option value="ended">終了</option>
+              <option value="ng">NG / 辞退</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>現在の状況 (本人)</label>
             <select id="f-currentStatus">
               <option value="">選択してください</option>
               <option value="employed">在職中</option>
@@ -4015,7 +4039,7 @@
 
   // ============ State ============
   let candidates = [];
-  let filters = { rank: 'all', work: 'all', pos: 'all', cust: 'all' };
+  let filters = { rank: 'all', work: 'all', pos: 'all', cust: 'all', status: 'all' };
   let sortBy = 'date-desc';
   let searchQuery = '';
   let editingId = null;
@@ -4144,6 +4168,8 @@
   function positionLabel(p) { return { IS: 'IS', FS: 'FS', both: 'IS/FS' }[p] || '—'; }
   function customerLabel(c) { return { toC: 'toC', toB: 'toB', both: 'toC/B' }[c] || '—'; }
   function statusLabel(s) { return { employed: '在職中', leaving: '離職予定', unemployed: '離職中' }[s] || '—'; }
+  function candStatusLabel(s) { return { new: '面談前', interviewed: '面談済み', proposing: '提案中', active: '稼働中', paused: '一時停止', ended: '終了', ng: 'NG/辞退' }[s] || '—'; }
+  function candStatusColor(s) { return { new: 'var(--ink-muted)', interviewed: 'var(--primary)', proposing: 'var(--accent)', active: '#2C7A4A', paused: 'var(--rank-b-fg)', ended: 'var(--ink-faint)', ng: 'var(--rank-c-fg)' }[s] || 'var(--ink-muted)'; }
   function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
@@ -4156,6 +4182,7 @@
   // ============ Render ============
   function applyFilters(list) {
     return list.filter(c => {
+      if (filters.status !== 'all' && c.status !== filters.status) return false;
       if (!meetsMinRank(c, filters.rank)) return false;
       if (filters.work !== 'all' && c.workStyle !== filters.work) return false;
       if (filters.pos !== 'all' && c.position !== filters.pos && c.position !== 'both') {
@@ -4259,7 +4286,7 @@
         <div class="card-header">
           <div class="card-name-row">
             <div>
-              <div class="card-name">${escapeHtml(c.name || '(無名)')}</div>
+              <div class="card-name">${escapeHtml(c.name || '(無名)')}${c.status ? ` <span style="display:inline-block; padding: 2px 8px; font-size: 10px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 3px; background: var(--paper-soft); color: ${candStatusColor(c.status)}; border: 1px solid ${candStatusColor(c.status)};">${candStatusLabel(c.status)}</span>` : ''}</div>
               <div class="card-meta">面談 ${formatDate(c.interviewDate)}${c.recruiter ? ` · 担当 ${escapeHtml(c.recruiter)}` : ''}</div>
             </div>
             <div class="card-actions" onclick="event.stopPropagation()">
@@ -4800,6 +4827,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         document.getElementById('f-interviewDate').value = c.interviewDate || '';
         document.getElementById('f-recruiter').value = c.recruiter || '';
         document.getElementById('f-currentStatus').value = c.currentStatus || '';
+        document.getElementById('f-status').value = c.status || '';
         document.getElementById('f-workingHours').value = c.workingHours || '';
         document.getElementById('f-startDate').value = c.startDate || '';
         document.getElementById('f-experienceYears').value = c.experienceYears || '';
@@ -4835,7 +4863,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       }
     } else {
       document.getElementById('f-id').value = '';
-      ['f-name','f-recruiter','f-currentStatus','f-workingHours','f-startDate','f-experienceYears','f-isAppointments','f-isCalls','f-isAchievement','f-fsMeetings','f-fsWinRate','f-fsAchievement','f-rankCtoB','f-notes','f-partnerCompany'].forEach(id => {
+      ['f-name','f-recruiter','f-currentStatus','f-status','f-workingHours','f-startDate','f-experienceYears','f-isAppointments','f-isCalls','f-isAchievement','f-fsMeetings','f-fsWinRate','f-fsAchievement','f-rankCtoB','f-notes','f-partnerCompany'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -5049,6 +5077,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       interviewDate: document.getElementById('f-interviewDate').value || null,
       recruiter: document.getElementById('f-recruiter').value.trim() || null,
       currentStatus: document.getElementById('f-currentStatus').value || null,
+      status: document.getElementById('f-status').value || null,
       source: source || null,
       partnerCompany: (source === 'partner' ? partnerCompany : null) || null,
       rankSell: readPickerValue('rankSell'),
@@ -5119,6 +5148,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       <div class="detail-section"><h3>基本情報</h3><dl class="detail-grid">
         <dt>面談日</dt><dd>${safe(c.interviewDate)}</dd>
         <dt>担当</dt><dd>${safe(c.recruiter)}</dd>
+        <dt>求職者ステータス</dt><dd>${c.status ? `<span style="padding: 2px 8px; background: var(--paper-soft); color: ${candStatusColor(c.status)}; border: 1px solid ${candStatusColor(c.status)}; font-size: 11px;">${candStatusLabel(c.status)}</span>` : '<span class="empty">未入力</span>'}</dd>
         <dt>現在の状況</dt><dd>${c.currentStatus ? statusLabel(c.currentStatus) : '<span class="empty">未入力</span>'}</dd>
         <dt>経路</dt><dd>${sourceLabel}</dd>
       </dl></div>
@@ -7344,6 +7374,34 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         }
       }
     } catch (e) { console.warn('Migration failed:', e); }
+
+    // 求職者ステータス: 稼働中assignmentがあるなら自動で 'active'、それ以外はnotesから推定
+    try {
+      const statFlag = await window.storage.get('_migrated_cand_status_v1', true).catch(() => null);
+      if (!statFlag) {
+        const activeIds = new Set(assignments.filter(a => a.status === 'active').map(a => a.candId));
+        let n = 0;
+        for (const c of candidates) {
+          if (c.status) continue;  // skip if already set
+          if (activeIds.has(c.id)) {
+            c.status = 'active';
+          } else {
+            // Infer from notes (元ステータス: ...)
+            const notes = c.notes || '';
+            if (/提案中/.test(notes)) c.status = 'proposing';
+            else if (/稼働中/.test(notes)) c.status = 'active';
+            else if (/面談済|面接済/.test(notes)) c.status = 'interviewed';
+            else if (/面接前|面談前/.test(notes)) c.status = 'new';
+            else if (/NG|辞退/.test(notes)) c.status = 'ng';
+            else c.status = 'interviewed';  // default
+          }
+          await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true);
+          n++;
+        }
+        await window.storage.set('_migrated_cand_status_v1', '1', true);
+        if (n) console.log(`Cand status migration: ${n} updated`);
+      }
+    } catch (e) { console.warn('Cand status migration failed:', e); }
 
     // toC/toB適性 旧6種類→新4種類への自動変換
     try {
