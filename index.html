@@ -2895,7 +2895,17 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="f-id" />
-      
+
+      <!-- 面談メモエリア (フリーフォーム→自動抽出) -->
+      <div class="form-section" style="background: #FBF9F1; padding: 14px 16px; border: 1px solid var(--border-strong); margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <div class="form-section-title" style="margin-bottom: 0; padding-bottom: 0; border: none;">📝 面談メモ <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入欄)</span></div>
+          <button type="button" class="btn-ghost" onclick="extractFromMemo()" style="padding: 6px 12px; font-size: 11px; background: var(--accent); color: white; border-color: var(--accent);">✨ メモから自動入力</button>
+        </div>
+        <textarea id="f-rawMemo" placeholder="面談中の聞き取りメモを自由に記入できます。下のボタンで以下を自動抽出:&#10;・年齢/経験年数/居住地&#10;・希望単価(時給/月給)&#10;・稼働時間/開始希望日&#10;・勤務形態(リモート/出社/ハイブリッド)&#10;・ポジション(IS/FS)&#10;・経験業界・経験商材&#10;&#10;例: 山田太郎さん 35歳 神奈川県川崎市 営業経験8年。SaaSのIS経験あり。希望時給3000円〜。月160hリモート希望。3月から稼働可。" rows="8" style="line-height: 1.7; font-size: 13px; border-color: var(--border-strong);"></textarea>
+        <div id="memo-extract-result" style="margin-top: 8px; font-size: 11px; color: var(--ink-muted); min-height: 14px;"></div>
+      </div>
+
       <!-- 基本情報 -->
       <div class="form-section">
         <div class="form-section-title">基本情報</div>
@@ -4358,6 +4368,194 @@
     if (typeof refreshMatchTarget === 'function') refreshMatchTarget();
   }
 
+  // ============ Memo Auto-Extract ============
+  function setIfEmpty(elId, value) {
+    const el = document.getElementById(elId);
+    if (el && (!el.value || el.value === '0' || el.value === '')) {
+      el.value = value;
+      return true;
+    }
+    return false;
+  }
+  function setToggleIfEmpty(field, value) {
+    const group = document.querySelector(`#form-modal .toggle-group[data-field="${field}"]`);
+    if (!group) return false;
+    const currentActive = group.querySelector('.toggle-option.active');
+    if (currentActive) return false;
+    const target = group.querySelector(`.toggle-option[data-value="${value}"]`);
+    if (target) {
+      target.classList.add('active');
+      return true;
+    }
+    return false;
+  }
+
+  function extractFromMemo() {
+    const memo = (document.getElementById('f-rawMemo')?.value || '').trim();
+    if (!memo) { showToast('メモを入力してください', true); return; }
+    const extracted = [];
+    let m;
+
+    // 1) 氏名 (一行目に名前っぽいもの / "山田太郎さん" 等)
+    const firstLine = memo.split('\n')[0].trim();
+    const nameMatch = firstLine.match(/^([一-龯々ヶー゠-ヿ぀-ゟA-Za-z\s　]{2,20}?)(さん|氏|様|君)?(?=\s|、|,|。|$)/);
+    if (nameMatch && !document.getElementById('f-name').value) {
+      // exclude pure digits / location-like words
+      const cand = nameMatch[1].replace(/\s+/g, ' ').trim();
+      if (cand && !/^[\d歳才年月日]+$/.test(cand)) {
+        document.getElementById('f-name').value = cand;
+        extracted.push(`氏名: ${cand}`);
+      }
+    }
+
+    // 2) 年齢 → 経験年数 candidate, but more useful to use 経験年数
+    // We don't have age field so put it in notes if found
+    m = memo.match(/(\d{2})[歳才]/);
+    let ageStr = '';
+    if (m) ageStr = m[1] + '歳';
+
+    // 3) 経験年数: "営業N年" "経験N年" "N年経験"
+    m = memo.match(/(?:営業|経験|セールス|IS|FS)\s*(\d{1,2})年|(\d{1,2})年(?:経験|営業)/);
+    if (m) {
+      const yrs = m[1] || m[2];
+      if (setIfEmpty('f-experienceYears', yrs)) extracted.push(`経験年数: ${yrs}年`);
+    }
+
+    // 4) 希望単価: "時給N円" "Nに円" "N万円/月"
+    let rate = null, rateMode = null, rateMin = null;
+    m = memo.match(/時給\s*([\d,]+)\s*円?\s*[〜~~–-]?\s*([\d,]+)?\s*円?/);
+    if (m) {
+      const min = m[1].replace(/,/g,'');
+      const max = m[2] ? m[2].replace(/,/g,'') : null;
+      if (max) { rate = max; rateMin = min; }
+      else rate = min;
+      rateMode = 'hourly';
+    } else {
+      m = memo.match(/月給?\s*([\d,]+)\s*万?\s*[〜~~–-]?\s*([\d,]+)?\s*万?\s*円?/);
+      if (m) {
+        const v1 = m[1].replace(/,/g,'');
+        const v2 = m[2] ? m[2].replace(/,/g,'') : null;
+        // assume 万円 if value is small
+        if (parseInt(v1) < 200) { rate = v2 || v1; rateMin = v2 ? v1 : null; rateMode = 'monthly'; }
+        else { rate = v1; rateMode = 'monthly'; /* assume yen */ rate = Math.round(parseInt(v1)/10000); }
+      }
+    }
+    if (rate) {
+      setRateMode('desired', rateMode);
+      const amountInput = document.querySelector('.rate-amount[data-target="desired"]');
+      if (amountInput && !amountInput.value) {
+        amountInput.value = rate;
+        if (rateMin) {
+          const minInput = document.querySelector('.rate-amount-min[data-target="desired"]');
+          if (minInput) minInput.value = rateMin;
+        }
+        updateConversion('desired');
+        extracted.push(`希望単価: ${rate}${rateMode === 'hourly' ? '円/h' : '万円/月'}${rateMin ? ` (最低${rateMin})` : ''}`);
+      }
+    }
+
+    // 5) 稼働時間: "Nh/月" "月Nh" "N時間/月" "Nh稼働"
+    m = memo.match(/(\d{2,3})\s*[hH時]\s*(?:間|稼働)?\s*\/?\s*月|月\s*(\d{2,3})\s*[hH時]/);
+    if (m) {
+      const hrs = m[1] || m[2];
+      if (setIfEmpty('f-workingHours', hrs)) extracted.push(`稼働時間: ${hrs}h/月`);
+    }
+
+    // 6) 開始希望日: "X月Y日から" "X月から" "即日"
+    if (/即日/.test(memo) && !document.getElementById('f-startDate').value) {
+      document.getElementById('f-startDate').value = new Date().toISOString().split('T')[0];
+      extracted.push('開始希望: 即日');
+    } else {
+      m = memo.match(/(\d{1,2})\s*月\s*(\d{1,2})?\s*日?\s*から|(\d{1,2})\/(\d{1,2})\s*から/);
+      if (m) {
+        const mo = m[1] || m[3];
+        const day = m[2] || m[4] || '1';
+        const yr = new Date().getFullYear();
+        const dateStr = `${yr}-${String(mo).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        if (setIfEmpty('f-startDate', dateStr)) extracted.push(`開始希望: ${mo}月${day}日`);
+      }
+    }
+
+    // 7) 勤務形態
+    if (/リモート|フルリモ|在宅/.test(memo) && /ハイブリッド|一部出社|週\d日出社/.test(memo)) {
+      if (setToggleIfEmpty('workStyle', 'hybrid')) extracted.push('勤務形態: ハイブリッド');
+    } else if (/フルリモ|完全リモート|フルリモート/.test(memo) || (/リモート/.test(memo) && !/出社/.test(memo))) {
+      if (setToggleIfEmpty('workStyle', 'remote')) extracted.push('勤務形態: リモート');
+    } else if (/出社|オンサイト/.test(memo)) {
+      if (setToggleIfEmpty('workStyle', 'onsite')) extracted.push('勤務形態: 出社');
+    }
+
+    // 8) ポジション
+    const hasIS = /\bIS\b|インサイドセールス|テレアポ/.test(memo);
+    const hasFS = /\bFS\b|フィールドセールス|商談|クロージング/.test(memo);
+    if (hasIS && hasFS) {
+      if (setToggleIfEmpty('position', 'both')) extracted.push('ポジション: IS/FS両方');
+    } else if (hasIS) {
+      if (setToggleIfEmpty('position', 'IS')) extracted.push('ポジション: IS');
+    } else if (hasFS) {
+      if (setToggleIfEmpty('position', 'FS')) extracted.push('ポジション: FS');
+    }
+
+    // 9) 顧客 (toC/toB)
+    if (/toB|法人|BtoB/.test(memo) && /toC|個人/.test(memo)) {
+      if (setToggleIfEmpty('customer', 'both')) extracted.push('顧客: toB/toC両方');
+    } else if (/toB|法人|BtoB|エンタープライズ/.test(memo)) {
+      if (setToggleIfEmpty('customer', 'toB')) extracted.push('顧客: toB');
+    } else if (/toC|個人|BtoC/.test(memo)) {
+      if (setToggleIfEmpty('customer', 'toC')) extracted.push('顧客: toC');
+    }
+
+    // 10) 現在の状況
+    if (/在職中|現職/.test(memo)) {
+      if (setIfEmpty('f-currentStatus', 'employed')) extracted.push('状況: 在職中');
+    } else if (/離職予定|退職予定/.test(memo)) {
+      if (setIfEmpty('f-currentStatus', 'leaving')) extracted.push('状況: 離職予定');
+    } else if (/離職中|無職|フリー(?!ラン)/.test(memo)) {
+      if (setIfEmpty('f-currentStatus', 'unemployed')) extracted.push('状況: 離職中');
+    }
+
+    // 11) 経験業界・経験商材
+    const industryKeywords = {
+      'SaaS/IT': /SaaS|システム|IT|ソフトウェア|クラウド/,
+      '金融(保険)': /保険|生保|損保/,
+      '金融(証券・銀行)': /銀行|証券|信託/,
+      '不動産': /不動産/,
+      '人材': /人材|採用|HR|転職/,
+      '教育・研修': /教育|研修|スクール|学習/,
+      '広告・マーケ': /広告|マーケティング|プロモーション/,
+      '製造': /製造|メーカー/,
+      '小売・EC': /小売|EC|通販/,
+      'ヘルスケア・医療': /医療|ヘルスケア|病院|クリニック/,
+      '通信': /通信|キャリア|モバイル/,
+      'コンサル': /コンサル/
+    };
+    const foundIndustries = [];
+    for (const [ind, re] of Object.entries(industryKeywords)) {
+      if (re.test(memo)) foundIndustries.push(ind);
+    }
+    if (foundIndustries.length && document.querySelectorAll('#services-editor .service-row').length === 0) {
+      foundIndustries.forEach(ind => {
+        addServiceRow({ name: ind, industry: ind });
+      });
+      extracted.push(`経験業界: ${foundIndustries.join(', ')}`);
+    }
+
+    // 12) Notes - put age + remaining memo into notes if notes empty
+    const notesEl = document.getElementById('f-notes');
+    if (notesEl && !notesEl.value && ageStr) {
+      notesEl.value = ageStr + (memo.length > 30 ? '\n' + memo.substring(0, 200) + (memo.length > 200 ? '…' : '') : '');
+    }
+
+    // Show result
+    const resultEl = document.getElementById('memo-extract-result');
+    if (extracted.length) {
+      resultEl.innerHTML = `<span style="color: var(--accent);">✓ ${extracted.length}項目を自動入力しました:</span><br>${extracted.join(' / ')}`;
+      showToast(`${extracted.length}項目を自動入力しました`);
+    } else {
+      resultEl.innerHTML = `<span style="color: var(--ink-faint);">抽出できる項目がありませんでした (既に入力済みの項目はスキップされます)</span>`;
+    }
+  }
+
   // ============ Modal ============
   function openModal(id) {
     editingId = id || null;
@@ -4385,6 +4583,8 @@
         document.getElementById('f-fsAchievement').value = c.fsAchievement || '';
         document.getElementById('f-rankCtoB').value = c.rankCtoB || '';
         document.getElementById('f-notes').value = c.notes || '';
+        const memoEl = document.getElementById('f-rawMemo');
+        if (memoEl) memoEl.value = c.rawMemo || '';
         document.getElementById('f-partnerCompany').value = c.partnerCompany || '';
         const partnerSel = document.getElementById('f-partnerSelect');
         if (partnerSel) partnerSel.value = (c.partnerCompany && partners.includes(c.partnerCompany)) ? c.partnerCompany : '';
@@ -4407,9 +4607,12 @@
       }
     } else {
       document.getElementById('f-id').value = '';
-      ['f-name','f-recruiter','f-currentStatus','f-workingHours','f-startDate','f-experienceYears','f-isAppointments','f-isCalls','f-isAchievement','f-fsMeetings','f-fsWinRate','f-fsAchievement','f-rankCtoB','f-notes','f-partnerCompany'].forEach(id => {
-        document.getElementById(id).value = '';
+      ['f-name','f-recruiter','f-currentStatus','f-workingHours','f-startDate','f-experienceYears','f-isAppointments','f-isCalls','f-isAchievement','f-fsMeetings','f-fsWinRate','f-fsAchievement','f-rankCtoB','f-notes','f-partnerCompany','f-rawMemo'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
       });
+      const ec = document.getElementById('memo-extract-result');
+      if (ec) ec.textContent = '';
       const partnerSelNew = document.getElementById('f-partnerSelect');
       if (partnerSelNew) partnerSelNew.value = '';
       const today = new Date();
@@ -4642,6 +4845,7 @@
       fsWinRate: numOrNull('f-fsWinRate'),
       fsAchievement: numOrNull('f-fsAchievement'),
       notes: document.getElementById('f-notes').value.trim() || null,
+      rawMemo: (document.getElementById('f-rawMemo')?.value || '').trim() || null,
       services: readServicesFromForm(),
     };
     const ok = await saveToStorage(c);
