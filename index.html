@@ -2619,8 +2619,8 @@
         <div class="filter-group">
           <span class="filter-group-label">並び</span>
           <select class="sort-select" id="sort">
-            <option value="date-desc">登録日(新しい順)</option>
-            <option value="date-asc">登録日(古い順)</option>
+            <option value="date-desc">最新順 (面談日)</option>
+            <option value="date-asc">古い順 (面談日)</option>
             <option value="name">氏名順</option>
             <option value="rank">総合ランク順</option>
             <option value="start">開始希望日順</option>
@@ -4172,9 +4172,16 @@
   }
   function applySort(list) {
     const sorted = [...list];
+    // 面談日があれば面談日、なければ createdAt をキーとして使う
+    const sortKey = (c) => {
+      if (c.interviewDate) {
+        try { return new Date(c.interviewDate).getTime(); } catch { return c.createdAt || 0; }
+      }
+      return c.createdAt || 0;
+    };
     switch (sortBy) {
-      case 'date-asc': sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); break;
-      case 'date-desc': sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); break;
+      case 'date-asc': sorted.sort((a, b) => sortKey(a) - sortKey(b)); break;
+      case 'date-desc': sorted.sort((a, b) => sortKey(b) - sortKey(a)); break;
       case 'name': sorted.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja')); break;
       case 'rank': sorted.sort((a, b) => avgRankScore(b) - avgRankScore(a)); break;
       case 'start':
