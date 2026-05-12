@@ -7295,6 +7295,51 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       }
     } catch (e) { console.warn('Auto-seed check failed:', e); }
 
+    // データマイグレーション: monthlyレートが円のまま保存されている場合を万円に変換
+    try {
+      const migrFlag = await window.storage.get('_migrated_rate_unit_v1', true).catch(() => null);
+      if (!migrFlag) {
+        let fixedJobs = 0, fixedCands = 0;
+        for (const j of jobs) {
+          let changed = false;
+          if (j.clientRateMode === 'monthly' && j.clientRate && j.clientRate > 1000) {
+            j.clientRate = Math.round(j.clientRate / 10000 * 10) / 10; changed = true;
+          }
+          if (j.proposalRateMode === 'monthly' && j.proposalRateMax && j.proposalRateMax > 1000) {
+            j.proposalRateMax = Math.round(j.proposalRateMax / 10000 * 10) / 10; changed = true;
+          }
+          if (j.proposalRateMode === 'monthly' && j.proposalRateMin && j.proposalRateMin > 1000) {
+            j.proposalRateMin = Math.round(j.proposalRateMin / 10000 * 10) / 10; changed = true;
+          }
+          if (changed) {
+            await window.storage.set(`job:${j.id}`, JSON.stringify(j), true);
+            fixedJobs++;
+          }
+        }
+        for (const c of candidates) {
+          let changed = false;
+          if (c.desiredRateMode === 'monthly' && c.desiredRate && c.desiredRate > 1000) {
+            c.desiredRate = Math.round(c.desiredRate / 10000 * 10) / 10; changed = true;
+          }
+          if (c.desiredRateMode === 'monthly' && c.desiredRateMin && c.desiredRateMin > 1000) {
+            c.desiredRateMin = Math.round(c.desiredRateMin / 10000 * 10) / 10; changed = true;
+          }
+          if (c.proposalRateMode === 'monthly' && c.proposalRate && c.proposalRate > 1000) {
+            c.proposalRate = Math.round(c.proposalRate / 10000 * 10) / 10; changed = true;
+          }
+          if (changed) {
+            await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true);
+            fixedCands++;
+          }
+        }
+        await window.storage.set('_migrated_rate_unit_v1', '1', true);
+        if (fixedJobs || fixedCands) {
+          console.log(`Rate unit migration: jobs=${fixedJobs}, candidates=${fixedCands}`);
+          setTimeout(() => showToast(`単価表記を修正: 案件${fixedJobs}件 / 求職者${fixedCands}名`), 1000);
+        }
+      }
+    } catch (e) { console.warn('Migration failed:', e); }
+
     // Load partner objects (Phase 6) + migrate legacy name list
     partnerObjs = await loadPartnerObjs();
     await migratePartnerNamesToObjects();
