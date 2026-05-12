@@ -3898,7 +3898,7 @@
           </button>
           <button class="btn-ghost" onclick="importAllFromSheet()" style="padding: 10px 16px; text-align: left;">
             ⬇ 求職者・案件・稼働・売上明細を取り込む
-            <span style="display: block; font-size: 10px; color: var(--ink-faint); margin-top: 2px; font-weight: normal;">求職者157名 / 案件88件 / 稼働41件 / 売上明細82件 (2025/1〜2026/4)</span>
+            <span style="display: block; font-size: 10px; color: var(--ink-faint); margin-top: 2px; font-weight: normal;">求職者161名 / 案件95件 / 稼働52件 / 売上明細104件 / 原価明細28件 (2025/1〜2026/4)</span>
           </button>
         </div>
         <div id="sheet-import-status" style="margin-top: 10px; font-size: 11px; color: var(--ink-muted);"></div>
@@ -6620,6 +6620,9 @@
     revenues = await loadRevenues();
     setupRevenueUI();
 
+    // Load cost records
+    costs = await loadCosts();
+
     // Load partner objects (Phase 6) + migrate legacy name list
     partnerObjs = await loadPartnerObjs();
     await migratePartnerNamesToObjects();
@@ -7036,6 +7039,31 @@
     }
   }
 
+  // ============ Cost Records (原価明細) ============
+  let costs = [];
+
+  async function loadCosts() {
+    try {
+      const result = await window.storage.list('cst:', true);
+      if (!result || !result.keys) return [];
+      const list = [];
+      for (const key of result.keys) {
+        try {
+          const r = await window.storage.get(key, true);
+          if (r) list.push(JSON.parse(r.value));
+        } catch (e) {}
+      }
+      return list;
+    } catch (e) { return []; }
+  }
+
+  function costCategoryLabel(cat) {
+    return { labor: '稼働費', transport: '交通費', referral: '紹介料', incentive: 'インセンティブ', fee: '手数料', other: 'その他' }[cat] || (cat || '—');
+  }
+  function costCategoryColor(cat) {
+    return { labor: 'var(--primary)', transport: '#5DA37A', referral: 'var(--accent)', incentive: 'var(--rank-s-fg)', fee: 'var(--ink-muted)', other: 'var(--ink-faint)' }[cat] || 'var(--ink-muted)';
+  }
+
   // ============ Revenue Records ============
   let revenues = [];
   let editingRevenueId = null;
@@ -7301,6 +7329,41 @@
       </div>
     `;
 
+    // Cost summary for this assignment
+    const asgnCosts = (typeof costs !== 'undefined') ? costs.filter(c => c.assignmentId === assignmentId).sort((a, b) => (a.month || '').localeCompare(b.month || '')) : [];
+    if (asgnCosts.length > 0) {
+      const byCategory = asgnCosts.reduce((acc, c) => {
+        const cat = c.category || 'other';
+        acc[cat] = (acc[cat] || 0) + (c.amountExclTax || 0);
+        return acc;
+      }, {});
+      const totalCost = Object.values(byCategory).reduce((s, v) => s + v, 0);
+      const margin = totalExcl - totalCost;
+      const rateNum = totalExcl ? (totalCost / totalExcl * 100) : 0;
+      html += `
+        <div style="background: var(--paper-soft); border: 1px solid var(--border); padding: 14px 18px; margin-bottom: 18px;">
+          <div style="font-size: 11px; color: var(--ink-muted); letter-spacing: 0.12em; margin-bottom: 10px; text-transform: uppercase; font-weight: 500;">原価内訳 (税抜)</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--border);">
+            ${Object.entries(byCategory).sort((a, b) => b[1] - a[1]).map(([cat, amt]) => `
+              <div>
+                <div style="font-size: 10px; color: ${costCategoryColor(cat)}; letter-spacing: 0.08em;">${costCategoryLabel(cat)}</div>
+                <div style="font-family: 'Shippori Mincho', serif; font-size: 16px; font-weight: 600; color: var(--ink);">${formatMan(amt)}</div>
+              </div>
+            `).join('')}
+            <div>
+              <div style="font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em;">原価合計</div>
+              <div style="font-family: 'Shippori Mincho', serif; font-size: 16px; font-weight: 600; color: var(--ink);">${formatMan(totalCost)}</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 10px; font-size: 13px;">
+            <span style="color: var(--ink-muted);">粗利 (税抜) / 原価率</span>
+            <span><span style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; color: ${margin >= 0 ? 'var(--accent)' : 'var(--rank-c-fg)'};">${formatMan(margin)}</span>
+            <span style="color: var(--ink-muted); margin-left: 12px;">原価率 <b style="color: var(--ink);">${rateNum.toFixed(1)}%</b></span></span>
+          </div>
+        </div>
+      `;
+    }
+
     if (revs.length === 0) {
       html += `<div class="empty-state" style="padding: 40px 20px;"><div class="empty-mark">空</div><div class="empty-title">売上明細がまだありません</div><div class="empty-text">下の「+ 売上を追加」から登録してください</div></div>`;
     } else {
@@ -7359,6 +7422,50 @@
             </tr>
           </tfoot>
         </table>
+      `;
+    }
+
+    // Cost line items table
+    if (asgnCosts.length > 0) {
+      const totalCostAll = asgnCosts.reduce((s, c) => s + (c.amountExclTax || 0), 0);
+      html += `
+        <div style="margin-top: 24px;">
+          <div style="font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 10px; font-family: 'Shippori Mincho', serif; padding-bottom: 6px; border-bottom: 1px solid var(--border);">原価明細 (${asgnCosts.length}件)</div>
+          <table class="services-table" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th style="text-align: left;">月</th>
+                <th style="text-align: left;">種別</th>
+                <th style="text-align: left;">支払先</th>
+                <th style="text-align: right;">単価</th>
+                <th style="text-align: right;">件数</th>
+                <th style="text-align: right;">税抜</th>
+                <th style="text-align: right;">税込</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${asgnCosts.map(c => `
+                <tr>
+                  <td style="font-family: 'Shippori Mincho', serif; font-weight: 500;">${escapeHtml(c.month || '')}</td>
+                  <td><span style="display:inline-block; padding: 2px 8px; font-size: 10px; border: 1px solid ${costCategoryColor(c.category)}; color: ${costCategoryColor(c.category)};">${escapeHtml(costCategoryLabel(c.category))}</span></td>
+                  <td>${escapeHtml(c.payee || '—')}</td>
+                  <td style="text-align: right;">¥${(c.unitPrice || 0).toLocaleString()}</td>
+                  <td style="text-align: right;">${c.quantity || 1}</td>
+                  <td style="text-align: right; font-weight: 500;">${formatMan(c.amountExclTax)}</td>
+                  <td style="text-align: right; color: var(--ink-muted);">${formatMan(c.amountInclTax)}</td>
+                </tr>
+                ${c.notes ? `<tr><td colspan="7" style="background: var(--paper-soft); font-size: 11px; color: var(--ink-muted); padding: 6px 14px;">📝 ${escapeHtml(c.notes)}</td></tr>` : ''}
+              `).join('')}
+            </tbody>
+            <tfoot>
+              <tr style="background: var(--paper-soft); font-weight: 600;">
+                <td colspan="5" style="text-align: right;">原価合計</td>
+                <td style="text-align: right; font-family: 'Shippori Mincho', serif;">${formatMan(totalCostAll)}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       `;
     }
 
@@ -7762,11 +7869,12 @@
     }
     months.forEach(mo => result.set(mo, { revenue: 0, cost: 0, count: 0, candIds: new Set(), hasActualRevenue: false }));
     // For each (assignment, month), use actual revenue record if exists, otherwise use assignment.monthlyRevenue
+    // Same for cost: prefer actual cost records (cst:) over assignment.monthlyCost
     assignments.forEach(a => {
       months.forEach(mo => {
         if (isActiveInMonth(a, mo)) {
           const bucket = result.get(mo);
-          // Find actual revenue record for this assignment×month
+          // Revenue: actual records preferred
           const actualRev = revenues.find(r => r.assignmentId === a.id && r.month === mo);
           if (actualRev) {
             bucket.revenue += actualRev.amountExclTax || 0;
@@ -7774,11 +7882,27 @@
           } else {
             bucket.revenue += a.monthlyRevenue || 0;
           }
-          bucket.cost += a.monthlyCost || 0;
+          // Cost: actual records (all categories) preferred
+          const actualCosts = (typeof costs !== 'undefined' ? costs : []).filter(c => c.assignmentId === a.id && c.month === mo);
+          if (actualCosts.length > 0) {
+            bucket.cost += actualCosts.reduce((s, c) => s + (c.amountExclTax || 0), 0);
+          } else {
+            bucket.cost += a.monthlyCost || 0;
+          }
           bucket.count++;
           if (a.candId) bucket.candIds.add(a.candId);
         }
       });
+    });
+    // Also include standalone cost records not tied to active assignments
+    (typeof costs !== 'undefined' ? costs : []).forEach(c => {
+      if (!c.month || !result.has(c.month)) return;
+      if (c.assignmentId) {
+        const a = assignments.find(x => x.id === c.assignmentId);
+        if (a && isActiveInMonth(a, c.month)) return;
+      }
+      const bucket = result.get(c.month);
+      bucket.cost += c.amountExclTax || 0;
     });
     // Also include revenue records not tied to any active assignment (standalone)
     revenues.forEach(r => {
@@ -8002,7 +8126,8 @@
     if (el) {
       const revCount = (typeof revenues !== 'undefined' && Array.isArray(revenues)) ? revenues.length : 0;
       const partnerObjCount = (typeof partnerObjs !== 'undefined' && Array.isArray(partnerObjs)) ? partnerObjs.length : partnerCount;
-      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 稼働: <b>${asgnCount}</b> / 売上: <b>${revCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerObjCount}</b>`;
+      const costCount = (typeof costs !== 'undefined' && Array.isArray(costs)) ? costs.length : 0;
+      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 稼働: <b>${asgnCount}</b> / 売上: <b>${revCount}</b> / 原価: <b>${costCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerObjCount}</b>`;
     }
   }
 
@@ -8032,7 +8157,8 @@
         partners: partners || [],
         partnerObjs: partnerObjs || [],
         assignments: assignments || [],
-        revenues: revenues || []
+        revenues: revenues || [],
+        costs: costs || []
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
       triggerDownload(`management-tool-backup_${timestamp()}.json`, blob);
@@ -8058,12 +8184,12 @@
       // Clear current storage
       const allKeys = await window.storage.list('', true);
       for (const k of (allKeys.keys || [])) {
-        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k.startsWith('rev:') || k === 'partners') {
+        if (k.startsWith('cand:') || k.startsWith('job:') || k.startsWith('prop:') || k.startsWith('asgn:') || k.startsWith('partner:') || k.startsWith('rev:') || k.startsWith('cst:') || k === 'partners') {
           try { await window.storage.delete(k, true); } catch (e) {}
         }
       }
       // Restore
-      let imported = { c: 0, j: 0, p: 0, pt: 0, a: 0, pn: 0, r: 0 };
+      let imported = { c: 0, j: 0, p: 0, pt: 0, a: 0, pn: 0, r: 0, cs: 0 };
       if (Array.isArray(data.candidates)) {
         for (const c of data.candidates) {
           if (c && c.id) { await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true); imported.c++; }
@@ -8098,7 +8224,12 @@
           if (r && r.id) { await window.storage.set(`rev:${r.id}`, JSON.stringify(r), true); imported.r++; }
         }
       }
-      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/売上${imported.r}/提案${imported.p}/パートナー${imported.pn || imported.pt}`);
+      if (Array.isArray(data.costs)) {
+        for (const c of data.costs) {
+          if (c && c.id) { await window.storage.set(`cst:${c.id}`, JSON.stringify(c), true); imported.cs++; }
+        }
+      }
+      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/売上${imported.r}/原価${imported.cs}/パートナー${imported.pn || imported.pt}`);
       // Reload page to refresh in-memory state cleanly
       setTimeout(() => location.reload(), 800);
     } catch (e) {
@@ -8298,11 +8429,12 @@
       const jc = (data.jobs || []).length;
       const ac = (data.assignments || []).length;
       const rc = (data.revenues || []).length;
-      if (!confirm(`スプシから以下を取り込みます。\n\n求職者: ${cc}名\n案件: ${jc}件\n稼働: ${ac}件\n売上明細: ${rc}件\n\nマージ動作: 既存IDと重複しないものを追加し、同じIDなら上書きします。続行しますか？`)) {
+      const csc = (data.costs || []).length;
+      if (!confirm(`スプシから以下を取り込みます。\n\n求職者: ${cc}名\n案件: ${jc}件\n稼働: ${ac}件\n売上明細: ${rc}件\n原価明細: ${csc}件\n\nマージ動作: 既存IDと重複しないものを追加し、同じIDなら上書きします。続行しますか？`)) {
         if (statusEl) statusEl.textContent = '';
         return;
       }
-      let added = { c: 0, j: 0, a: 0, r: 0 };
+      let added = { c: 0, j: 0, a: 0, r: 0, cs: 0 };
       // Merge candidates by id
       for (const c of (data.candidates || [])) {
         if (!c || !c.id) continue;
@@ -8328,8 +8460,14 @@
         const idx = revenues.findIndex(x => x.id === r.id);
         if (idx >= 0) revenues[idx] = r; else { revenues.push(r); added.r++; }
       }
+      for (const c of (data.costs || [])) {
+        if (!c || !c.id) continue;
+        await window.storage.set(`cst:${c.id}`, JSON.stringify(c), true);
+        const idx = costs.findIndex(x => x.id === c.id);
+        if (idx >= 0) costs[idx] = c; else { costs.push(c); added.cs++; }
+      }
       render(); renderJobs(); renderAssignments(); updateTabCounts();
-      if (statusEl) statusEl.textContent = `✓ 追加: 求職者${added.c}/案件${added.j}/稼働${added.a}/売上${added.r}`;
+      if (statusEl) statusEl.textContent = `✓ 追加: 求職者${added.c}/案件${added.j}/稼働${added.a}/売上${added.r}/原価${added.cs}`;
       showToast(`取り込み完了`);
     } catch (e) {
       console.error(e);
