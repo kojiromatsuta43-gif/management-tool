@@ -3148,6 +3148,16 @@
         </div>
       </div>
 
+      <!-- 候補者タグ (マッチング精度UP) -->
+      <div class="form-section">
+        <div class="form-section-title">候補者タグ <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(マッチング精度向上)</span></div>
+        <div id="f-tags-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px;"></div>
+        <div style="margin-top: 10px; display: flex; gap: 6px; align-items: center;">
+          <input type="text" id="f-tags-custom" placeholder="その他のタグを追加 (Enterで追加)" style="flex: 1; padding: 6px 10px; font-size: 12px;" />
+          <button type="button" class="btn-ghost" onclick="addCustomCandTag()" style="padding: 6px 14px; font-size: 11px;">+ 追加</button>
+        </div>
+      </div>
+
       <!-- 経験のあるサービス -->
       <div class="form-section">
         <div class="form-section-title">経験のあるサービス・商材</div>
@@ -4173,6 +4183,76 @@
   function customerLabel(c) { return { toC: 'toC', toB: 'toB', both: 'toC/B' }[c] || '—'; }
   function statusLabel(s) { return { employed: '在職中', leaving: '離職予定', unemployed: '離職中' }[s] || '—'; }
   function candStatusLabel(s) { return { new: '面談前', interviewed: '面談済み', proposing: '提案中', active: '稼働中', paused: '一時停止', ended: '終了', ng: 'NG/辞退' }[s] || '—'; }
+
+  // ============ Candidate Tags (マッチング精度向上) ============
+  const CAND_TAG_GROUPS = {
+    '商材タイプ': ['SaaS', '無形商材', '有形商材', 'HR/人材系', 'IT/SI', '金融商品', '不動産', '広告', 'コンサル'],
+    '営業手法': ['反響(インバウンド)', '新規開拓', '既存深耕', 'テレアポ', 'メール営業', '訪問営業', 'オンライン商談', 'カスタマーサクセス'],
+    '顧客規模': ['エンタープライズ', '中堅・SMB', '中小企業', '個人事業主', 'コンシューマー(toC)'],
+    '商談単価': ['高単価(1000万円〜)', '中単価(100〜1000万円)', '低単価(〜100万円)'],
+    'スキル': ['提案資料作成', '稟議資料作成', 'KPI管理', 'マネジメント経験', '新規立ち上げ経験', 'チームMTGリード', 'クロージング', '英語対応可'],
+    '稼働特性': ['即戦力', '長期稼働希望', '短期OK', '副業対応', 'フルコミット可', '週末/夜間OK']
+  };
+
+  function renderCandTagsGrid(selected) {
+    const grid = document.getElementById('f-tags-grid');
+    if (!grid) return;
+    const sel = new Set(selected || []);
+    // Group display
+    let html = '';
+    for (const [group, tags] of Object.entries(CAND_TAG_GROUPS)) {
+      const allInGroup = [...tags];
+      (selected || []).forEach(t => { if (t.startsWith(group + ':') || allInGroup.includes(t)) {} });
+      html += `<div style="grid-column: 1 / -1; font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em; margin-top: 8px; padding-top: 4px; border-top: 1px dashed var(--border); font-weight: 500;">${group}</div>`;
+      for (const t of tags) {
+        const isSel = sel.has(t);
+        html += `<label style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: ${isSel ? 'var(--accent-soft)' : 'var(--paper-soft)'}; border: 1px solid ${isSel ? 'var(--accent)' : 'var(--border)'}; cursor: pointer; font-size: 11px; color: ${isSel ? 'var(--accent)' : 'var(--ink)'};">
+          <input type="checkbox" value="${escapeAttr(t)}" ${isSel ? 'checked' : ''} onchange="toggleCandTag(this)" style="margin: 0;" />
+          ${escapeHtml(t)}
+        </label>`;
+      }
+    }
+    // Show custom tags not in any group
+    const allDefault = new Set();
+    Object.values(CAND_TAG_GROUPS).forEach(arr => arr.forEach(t => allDefault.add(t)));
+    const custom = (selected || []).filter(t => !allDefault.has(t));
+    if (custom.length) {
+      html += `<div style="grid-column: 1 / -1; font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em; margin-top: 8px; padding-top: 4px; border-top: 1px dashed var(--border); font-weight: 500;">カスタム</div>`;
+      for (const t of custom) {
+        html += `<label style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--accent-soft); border: 1px solid var(--accent); cursor: pointer; font-size: 11px; color: var(--accent);">
+          <input type="checkbox" value="${escapeAttr(t)}" checked onchange="toggleCandTag(this)" style="margin: 0;" />
+          ${escapeHtml(t)}
+        </label>`;
+      }
+    }
+    grid.innerHTML = html;
+  }
+  function toggleCandTag(input) {
+    const label = input.parentElement;
+    if (input.checked) {
+      label.style.background = 'var(--accent-soft)';
+      label.style.borderColor = 'var(--accent)';
+      label.style.color = 'var(--accent)';
+    } else {
+      label.style.background = 'var(--paper-soft)';
+      label.style.borderColor = 'var(--border)';
+      label.style.color = 'var(--ink)';
+    }
+  }
+  function addCustomCandTag() {
+    const input = document.getElementById('f-tags-custom');
+    const val = (input.value || '').trim();
+    if (!val) return;
+    const current = readSelectedCandTags();
+    if (current.includes(val)) { showToast('既に存在するタグです', true); return; }
+    current.push(val);
+    renderCandTagsGrid(current);
+    input.value = '';
+  }
+  function readSelectedCandTags() {
+    const checks = document.querySelectorAll('#f-tags-grid input[type="checkbox"]:checked');
+    return Array.from(checks).map(c => c.value);
+  }
   function candStatusColor(s) { return { new: 'var(--ink-muted)', interviewed: 'var(--primary)', proposing: 'var(--accent)', active: '#2C7A4A', paused: 'var(--rank-b-fg)', ended: 'var(--ink-faint)', ng: 'var(--rank-c-fg)' }[s] || 'var(--ink-muted)'; }
   function escapeHtml(str) {
     if (!str) return '';
@@ -4202,11 +4282,12 @@
           (s.name || '').toLowerCase().includes(q) || 
           (s.industry || '').toLowerCase().includes(q)
         );
+        const tagMatch = (c.tags || []).some(t => t.toLowerCase().includes(q));
         const match = (c.name || '').toLowerCase().includes(q) ||
                       (c.notes || '').toLowerCase().includes(q) ||
                       (c.recruiter || '').toLowerCase().includes(q) ||
                       (c.partnerCompany || '').toLowerCase().includes(q) ||
-                      serviceMatch;
+                      serviceMatch || tagMatch;
         if (!match) return false;
       }
       return true;
@@ -4318,6 +4399,10 @@
           <div class="tags">
             ${tags.map(t => `<span class="tag${t.cls ? ' ' + t.cls : ''}${t.accent ? ' accent' : ''}">${escapeHtml(t.label)}</span>`).join('')}
           </div>
+          ${(c.tags && c.tags.length) ? `<div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px;">
+            ${c.tags.slice(0, 6).map(t => `<span style="font-size: 10px; padding: 2px 8px; background: #F0F0F0; color: var(--ink); border-radius: 12px;">${escapeHtml(t)}</span>`).join('')}
+            ${c.tags.length > 6 ? `<span style="font-size: 10px; color: var(--ink-faint);">+${c.tags.length - 6}</span>` : ''}
+          </div>` : ''}
           ${renderServiceTags(c.services)}
           ${typeof renderProposalListForCandidate === 'function' ? renderProposalListForCandidate(c.id) : ''}
           ${c.notes ? `<div class="card-notes">${escapeHtml(c.notes)}</div>` : ''}
@@ -4847,6 +4932,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           ? c.rawMemo + '\n\n' + c.notes
           : (c.notes || c.rawMemo || '');
         document.getElementById('f-notes').value = combinedNotes;
+        renderCandTagsGrid(c.tags || []);
         document.getElementById('f-partnerCompany').value = c.partnerCompany || '';
         const partnerSel = document.getElementById('f-partnerSelect');
         if (partnerSel) partnerSel.value = (c.partnerCompany && partners.includes(c.partnerCompany)) ? c.partnerCompany : '';
@@ -4879,6 +4965,9 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       document.getElementById('f-interviewDate').value = today.toISOString().split('T')[0];
       clearServices();
       clearRates();
+      renderCandTagsGrid([]);
+      const tagsCustom = document.getElementById('f-tags-custom');
+      if (tagsCustom) tagsCustom.value = '';
     }
     // 経路セレクトに応じてパートナー企業欄を表示/非表示
     updatePartnerFieldVisibility();
@@ -5106,6 +5195,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       fsWinRate: numOrNull('f-fsWinRate'),
       fsAchievement: numOrNull('f-fsAchievement'),
       notes: document.getElementById('f-notes').value.trim() || null,
+      tags: readSelectedCandTags(),
       services: readServicesFromForm(),
     };
     const ok = await saveToStorage(c);
@@ -5177,6 +5267,13 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         ${c.fsWinRate ? `<dt>受注率</dt><dd>${c.fsWinRate} %</dd>` : ''}
         ${c.fsAchievement ? `<dt>達成率</dt><dd>${c.fsAchievement} %</dd>` : ''}
       </dl></div>`;
+    }
+    if (c.tags && c.tags.length) {
+      html += `<div class="detail-section"><h3>候補者タグ (${c.tags.length}件)</h3>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          ${c.tags.map(t => `<span style="display: inline-block; padding: 5px 14px; background: #F0F0F0; color: var(--ink); border-radius: 16px; font-size: 13px; font-weight: 500;">${escapeHtml(t)}</span>`).join('')}
+        </div>
+      </div>`;
     }
     if (c.services && c.services.length) {
       html += `<div class="detail-section"><h3>経験のあるサービス・商材 (${c.services.length}件)</h3><table class="services-table"><thead><tr><th class="col-name">サービス名</th><th class="col-industry">業界</th><th class="col-price">単価帯</th><th class="col-period">期間</th><th class="col-calls">架電数/日</th><th class="col-achieve">達成率</th></tr></thead><tbody>
