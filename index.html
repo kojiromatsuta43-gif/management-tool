@@ -2984,12 +2984,10 @@
             <label>toC/toB適性</label>
             <select id="f-rankCtoB">
               <option value="">選択</option>
-              <option value="toC-S">toC-S</option>
-              <option value="toC-A">toC-A</option>
-              <option value="両方型">両方型</option>
-              <option value="toB-A">toB-A</option>
-              <option value="toB-S">toB-S</option>
-              <option value="要見極め">要見極め</option>
+              <option value="toC">toC</option>
+              <option value="toB">toB</option>
+              <option value="両方">両方の経験あり</option>
+              <option value="未経験">未経験</option>
             </select>
           </div>
         </div>
@@ -3321,11 +3319,10 @@
             <label>希望適性タイプ</label>
             <select id="jf-reqRankCtoB">
               <option value="">不問</option>
-              <option value="toC-S">toC-S</option>
-              <option value="toC-A">toC-A</option>
-              <option value="両方型">両方型</option>
-              <option value="toB-A">toB-A</option>
-              <option value="toB-S">toB-S</option>
+              <option value="toC">toC</option>
+              <option value="toB">toB</option>
+              <option value="両方">両方の経験あり</option>
+              <option value="未経験">未経験</option>
             </select>
           </div>
         </div>
@@ -4724,7 +4721,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     if (r3) extracted.push(`自走: ${r3}`);
     const ctob = pickLabel(['toC/toB適性', 'toCtoB', '適性']);
     if (ctob) {
-      const opts = ['toC-S','toC-A','両方型','toB-A','toB-S','要見極め'];
+      const opts = ['toC','toB','両方','未経験'];
       for (const opt of opts) {
         if (ctob.includes(opt)) {
           if (setIfEmpty('f-rankCtoB', opt)) extracted.push(`toC/B: ${opt}`);
@@ -6033,7 +6030,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     if (rankRequiredCount === 0) earned += 15;
     else { const ratio = rankSatisfiedCount / rankRequiredCount; earned += Math.round(15 * ratio); if (rankSatisfiedCount === rankRequiredCount) reasons.push({ type: 'positive', text: 'ランク全クリア' }); else if (rankFailDetails.length) warnings.push({ type: 'warning', text: 'ランク不足:' + rankFailDetails.join(',') }); }
     if (job.reqRankCtoB && candidate.rankCtoB) {
-      if (job.reqRankCtoB === candidate.rankCtoB || candidate.rankCtoB === '両方型') reasons.push({ type: 'positive', text: `適性${candidate.rankCtoB}` });
+      if (job.reqRankCtoB === candidate.rankCtoB || candidate.rankCtoB === '両方') reasons.push({ type: 'positive', text: `適性${candidate.rankCtoB}` });
       else if (!((job.reqRankCtoB.startsWith('toC') && candidate.rankCtoB.startsWith('toC')) || (job.reqRankCtoB.startsWith('toB') && candidate.rankCtoB.startsWith('toB')))) warnings.push({ type: 'warning', text: `適性相違(要${job.reqRankCtoB}/実${candidate.rankCtoB})` });
     }
     maxPossible += 5;
@@ -7347,6 +7344,36 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         }
       }
     } catch (e) { console.warn('Migration failed:', e); }
+
+    // toC/toB適性 旧6種類→新4種類への自動変換
+    try {
+      const ctobFlag = await window.storage.get('_migrated_ctob_v1', true).catch(() => null);
+      if (!ctobFlag) {
+        const CTOB_MAP = {
+          'toC-S': 'toC', 'toC-A': 'toC',
+          'toB-S': 'toB', 'toB-A': 'toB',
+          '両方型': '両方',
+          '要見極め': '未経験'
+        };
+        let n = 0;
+        for (const c of candidates) {
+          if (c.rankCtoB && CTOB_MAP[c.rankCtoB]) {
+            c.rankCtoB = CTOB_MAP[c.rankCtoB];
+            await window.storage.set(`cand:${c.id}`, JSON.stringify(c), true);
+            n++;
+          }
+        }
+        for (const j of jobs) {
+          if (j.reqRankCtoB && CTOB_MAP[j.reqRankCtoB]) {
+            j.reqRankCtoB = CTOB_MAP[j.reqRankCtoB];
+            await window.storage.set(`job:${j.id}`, JSON.stringify(j), true);
+            n++;
+          }
+        }
+        await window.storage.set('_migrated_ctob_v1', '1', true);
+        if (n) console.log(`toC/toB migration: ${n} records updated`);
+      }
+    } catch (e) { console.warn('toC/toB migration failed:', e); }
 
     // Load partner objects (Phase 6) + migrate legacy name list
     partnerObjs = await loadPartnerObjs();
