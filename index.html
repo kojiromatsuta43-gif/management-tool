@@ -4193,64 +4193,139 @@
     'スキル': ['提案資料作成', '稟議資料作成', 'KPI管理', 'マネジメント経験', '新規立ち上げ経験', 'チームMTGリード', 'クロージング', '英語対応可']
   };
 
+  const expandedCandTagGroups = new Set();  // どのグループを開いてるか
+  let currentCandTags = [];  // 状態 (グループ折りたたみで失われないように)
   function renderCandTagsGrid(selected) {
+    currentCandTags = Array.isArray(selected) ? [...selected] : [];
     const grid = document.getElementById('f-tags-grid');
     if (!grid) return;
     const sel = new Set(selected || []);
-    // Group display
+
+    // グリッドモードをやめて、全幅で縦に並べる
+    grid.style.display = 'block';
+    grid.style.gridTemplateColumns = 'unset';
+
     let html = '';
-    for (const [group, tags] of Object.entries(CAND_TAG_GROUPS)) {
-      const allInGroup = [...tags];
-      (selected || []).forEach(t => { if (t.startsWith(group + ':') || allInGroup.includes(t)) {} });
-      html += `<div style="grid-column: 1 / -1; font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em; margin-top: 8px; padding-top: 4px; border-top: 1px dashed var(--border); font-weight: 500;">${group}</div>`;
-      for (const t of tags) {
-        const isSel = sel.has(t);
-        html += `<label style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: ${isSel ? 'var(--accent-soft)' : 'var(--paper-soft)'}; border: 1px solid ${isSel ? 'var(--accent)' : 'var(--border)'}; cursor: pointer; font-size: 11px; color: ${isSel ? 'var(--accent)' : 'var(--ink)'};">
-          <input type="checkbox" value="${escapeAttr(t)}" ${isSel ? 'checked' : ''} onchange="toggleCandTag(this)" style="margin: 0;" />
-          ${escapeHtml(t)}
-        </label>`;
-      }
+
+    // 選択中のタグサマリー (常に上部に表示)
+    if (sel.size > 0) {
+      html += `<div style="margin-bottom: 12px; padding: 10px 12px; background: var(--accent-soft); border: 1px solid var(--accent);">
+        <div style="font-size: 10px; color: var(--accent); letter-spacing: 0.08em; margin-bottom: 6px; font-weight: 600;">選択中 (${sel.size}件)</div>
+        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+          ${Array.from(sel).map(t => `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; background: white; color: var(--accent); border: 1px solid var(--accent); font-size: 11px; border-radius: 12px;">${escapeHtml(t)}<button type="button" onclick="removeCandTag('${escapeAttr(t)}')" style="background: none; border: none; color: var(--accent); cursor: pointer; padding: 0 2px; font-size: 14px; line-height: 1;">×</button></span>`).join('')}
+        </div>
+      </div>`;
     }
-    // Show custom tags not in any group
-    const allDefault = new Set();
-    Object.values(CAND_TAG_GROUPS).forEach(arr => arr.forEach(t => allDefault.add(t)));
-    const custom = (selected || []).filter(t => !allDefault.has(t));
-    if (custom.length) {
-      html += `<div style="grid-column: 1 / -1; font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em; margin-top: 8px; padding-top: 4px; border-top: 1px dashed var(--border); font-weight: 500;">カスタム</div>`;
-      for (const t of custom) {
-        html += `<label style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--accent-soft); border: 1px solid var(--accent); cursor: pointer; font-size: 11px; color: var(--accent);">
-          <input type="checkbox" value="${escapeAttr(t)}" checked onchange="toggleCandTag(this)" style="margin: 0;" />
-          ${escapeHtml(t)}
-        </label>`;
-      }
+
+    // グループ別アコーディオン
+    for (const [group, tags] of Object.entries(CAND_TAG_GROUPS)) {
+      const selInGroup = tags.filter(t => sel.has(t)).length;
+      const isExpanded = expandedCandTagGroups.has(group);
+      html += `<div style="margin-bottom: 6px; border: 1px solid var(--border); background: var(--paper);">
+        <div onclick="toggleCandTagGroup('${escapeAttr(group)}')" style="cursor: pointer; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; background: ${selInGroup > 0 ? 'var(--paper-soft)' : 'var(--paper)'}; user-select: none;">
+          <span style="font-size: 12px; font-weight: 500; color: var(--ink);">${escapeHtml(group)}${selInGroup > 0 ? ` <span style="display: inline-block; padding: 1px 7px; margin-left: 4px; background: var(--accent); color: white; font-size: 10px; border-radius: 8px; font-weight: 400;">${selInGroup}</span>` : ''}</span>
+          <span style="font-size: 12px; color: var(--ink-muted);">${isExpanded ? '⌃' : '⌄'}</span>
+        </div>
+        ${isExpanded ? `<div style="padding: 8px 12px; display: flex; gap: 6px; flex-wrap: wrap; border-top: 1px dashed var(--border);">
+          ${tags.map(t => {
+            const isSel = sel.has(t);
+            return `<label style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: ${isSel ? 'var(--accent-soft)' : 'var(--paper-soft)'}; border: 1px solid ${isSel ? 'var(--accent)' : 'var(--border)'}; cursor: pointer; font-size: 11px; color: ${isSel ? 'var(--accent)' : 'var(--ink)'};">
+              <input type="checkbox" value="${escapeAttr(t)}" ${isSel ? 'checked' : ''} onchange="toggleCandTag(this)" style="margin: 0;" />
+              ${escapeHtml(t)}
+            </label>`;
+          }).join('')}
+        </div>` : ''}
+      </div>`;
+    }
+
+    // カスタムタグマスタ (過去に追加されたタグを再選択可能に)
+    if (customCandTagMaster.length > 0) {
+      const isExpanded = expandedCandTagGroups.has('__custom__');
+      const selInCustom = customCandTagMaster.filter(t => sel.has(t)).length;
+      html += `<div style="margin-bottom: 6px; border: 1px solid var(--border); background: var(--paper);">
+        <div onclick="toggleCandTagGroup('__custom__')" style="cursor: pointer; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; background: ${selInCustom > 0 ? 'var(--paper-soft)' : 'var(--paper)'}; user-select: none;">
+          <span style="font-size: 12px; font-weight: 500; color: var(--ink);">★ 追加した商材・タグ${selInCustom > 0 ? ` <span style="display: inline-block; padding: 1px 7px; margin-left: 4px; background: var(--accent); color: white; font-size: 10px; border-radius: 8px; font-weight: 400;">${selInCustom}</span>` : ''} <span style="font-size: 10px; color: var(--ink-muted); font-weight: 400; margin-left: 4px;">(${customCandTagMaster.length}件)</span></span>
+          <span style="font-size: 12px; color: var(--ink-muted);">${isExpanded ? '⌃' : '⌄'}</span>
+        </div>
+        ${isExpanded ? `<div style="padding: 8px 12px; display: flex; gap: 6px; flex-wrap: wrap; border-top: 1px dashed var(--border);">
+          ${customCandTagMaster.map(t => {
+            const isSel = sel.has(t);
+            return `<label style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: ${isSel ? 'var(--accent-soft)' : 'var(--paper-soft)'}; border: 1px solid ${isSel ? 'var(--accent)' : 'var(--border)'}; cursor: pointer; font-size: 11px; color: ${isSel ? 'var(--accent)' : 'var(--ink)'};">
+              <input type="checkbox" value="${escapeAttr(t)}" ${isSel ? 'checked' : ''} onchange="toggleCandTag(this)" style="margin: 0;" />
+              ${escapeHtml(t)}
+              <button type="button" onclick="event.preventDefault(); event.stopPropagation(); confirmRemoveCustomTag('${escapeAttr(t)}');" title="マスタから削除" style="background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 0 2px; font-size: 11px; line-height: 1;">×</button>
+            </label>`;
+          }).join('')}
+        </div>` : ''}
+      </div>`;
     }
     grid.innerHTML = html;
   }
+  async function confirmRemoveCustomTag(name) {
+    if (!confirm(`「${name}」を追加タグマスタから削除しますか？\n(既に割り当て済みの候補者からは消えません)`)) return;
+    await removeFromCustomTagMaster(name);
+    renderCandTagsGrid(currentCandTags);
+    showToast('削除しました');
+  }
+  function toggleCandTagGroup(group) {
+    if (expandedCandTagGroups.has(group)) expandedCandTagGroups.delete(group);
+    else expandedCandTagGroups.add(group);
+    renderCandTagsGrid(readSelectedCandTags());
+  }
+  function removeCandTag(tag) {
+    const current = readSelectedCandTags().filter(t => t !== tag);
+    renderCandTagsGrid(current);
+  }
   function toggleCandTag(input) {
-    const label = input.parentElement;
+    const val = input.value;
     if (input.checked) {
-      label.style.background = 'var(--accent-soft)';
-      label.style.borderColor = 'var(--accent)';
-      label.style.color = 'var(--accent)';
+      if (!currentCandTags.includes(val)) currentCandTags.push(val);
     } else {
-      label.style.background = 'var(--paper-soft)';
-      label.style.borderColor = 'var(--border)';
-      label.style.color = 'var(--ink)';
+      currentCandTags = currentCandTags.filter(t => t !== val);
     }
+    renderCandTagsGrid(currentCandTags);
   }
   function addCustomCandTag() {
     const input = document.getElementById('f-tags-custom');
     const val = (input.value || '').trim();
     if (!val) return;
-    const current = readSelectedCandTags();
-    if (current.includes(val)) { showToast('既に存在するタグです', true); return; }
-    current.push(val);
-    renderCandTagsGrid(current);
+    if (currentCandTags.includes(val)) { showToast('既に存在するタグです', true); return; }
+    // カスタムタグマスタに追加 (商材タイプとして将来選択可能に)
+    addToCustomTagMaster(val);
+    currentCandTags.push(val);
+    renderCandTagsGrid(currentCandTags);
     input.value = '';
   }
   function readSelectedCandTags() {
-    const checks = document.querySelectorAll('#f-tags-grid input[type="checkbox"]:checked');
-    return Array.from(checks).map(c => c.value);
+    return [...currentCandTags];
+  }
+
+  // ============ Custom Tag Master ============
+  let customCandTagMaster = [];  // 全候補者で共通の追加タグ
+  async function loadCustomTagMaster() {
+    try {
+      const r = await window.storage.get('candTagMaster', true);
+      const arr = JSON.parse(r.value);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  async function saveCustomTagMaster() {
+    try { await window.storage.set('candTagMaster', JSON.stringify(customCandTagMaster), true); return true; }
+    catch (e) { return false; }
+  }
+  async function addToCustomTagMaster(name) {
+    if (!name || customCandTagMaster.includes(name)) return;
+    // Skip if already in default groups
+    const allDefault = new Set();
+    Object.values(CAND_TAG_GROUPS).forEach(arr => arr.forEach(t => allDefault.add(t)));
+    if (allDefault.has(name)) return;
+    customCandTagMaster.push(name);
+    customCandTagMaster.sort((a, b) => a.localeCompare(b, 'ja'));
+    await saveCustomTagMaster();
+  }
+  async function removeFromCustomTagMaster(name) {
+    customCandTagMaster = customCandTagMaster.filter(t => t !== name);
+    await saveCustomTagMaster();
   }
   function candStatusColor(s) { return { new: 'var(--ink-muted)', interviewed: 'var(--primary)', proposing: 'var(--accent)', active: '#2C7A4A', paused: 'var(--rank-b-fg)', ended: 'var(--ink-faint)', ng: 'var(--rank-c-fg)' }[s] || 'var(--ink-muted)'; }
   function escapeHtml(str) {
@@ -7604,6 +7679,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     } catch (e) { console.warn('toC/toB migration failed:', e); }
 
     // Load partner objects (Phase 6) + migrate legacy name list
+    customCandTagMaster = await loadCustomTagMaster();
     partnerObjs = await loadPartnerObjs();
     await migratePartnerNamesToObjects();
     setupPartnerUI();
