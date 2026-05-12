@@ -3466,6 +3466,26 @@
 <datalist id="industry-list"></datalist>
 <datalist id="partner-list"></datalist>
 
+<!-- ===== Revenue Detail Modal (一覧表示) ===== -->
+<div class="modal-overlay" id="revenue-detail-modal">
+  <div class="modal" style="max-width: 880px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-mark"></span><span id="rd-title">売上一覧</span>
+      </div>
+      <button class="modal-close" onclick="closeRevenueDetailModal()">×</button>
+    </div>
+    <div class="modal-body" id="rd-body"></div>
+    <div class="modal-footer">
+      <div class="modal-footer-left"></div>
+      <div class="modal-footer-right">
+        <button class="btn-ghost" onclick="closeRevenueDetailModal()">閉じる</button>
+        <button class="btn-primary" id="rd-add-btn" style="background: var(--primary);">+ 売上を追加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== Revenue Modal ===== -->
 <div class="modal-overlay" id="revenue-modal">
   <div class="modal" style="max-width: 600px;">
@@ -6954,6 +6974,7 @@
         <div style="grid-column: 1 / -1;">
           ${revHtml}
           <div class="assignment-card-actions">
+            <button class="icon-btn" onclick="event.stopPropagation(); openRevenueDetailModal('${a.id}')" title="売上一覧を表示">📊 売上一覧 (${revs.length})</button>
             <button class="icon-btn" onclick="event.stopPropagation(); openRevenueModal(null, '${a.id}')" title="売上明細を追加">+ 売上追加</button>
             <button class="icon-btn" onclick="event.stopPropagation(); openAssignmentModal('${a.id}')" title="編集">✎ 編集</button>
           </div>
@@ -7215,6 +7236,143 @@
   }
 
   function invoiceStatusLabel(s) { return { draft: '未送付', invoiced: '送付済み', paid: '入金済み', overdue: '期限超過' }[s] || '—'; }
+
+  // ===== Revenue Detail Modal =====
+  function openRevenueDetailModal(assignmentId) {
+    const a = assignments.find(x => x.id === assignmentId);
+    if (!a) { showToast('稼働情報が見つかりません', true); return; }
+    const cand = findCandidateById(a.candId);
+    const job = findJobById(a.jobId);
+    const client = job?.client || a.clientOverride || '';
+    const revs = revenues.filter(r => r.assignmentId === assignmentId).sort((x, y) => (x.month || '').localeCompare(y.month || ''));
+
+    // Header
+    document.getElementById('rd-title').textContent = `売上一覧 — ${cand?.name || '(削除済)'}${job ? ' / ' + job.title : ''}`;
+
+    // Calculate summaries
+    const totalExcl = revs.reduce((s, r) => s + (r.amountExclTax || 0), 0);
+    const totalIncl = revs.reduce((s, r) => s + (r.amountInclTax || 0), 0);
+    const byStatus = revs.reduce((acc, r) => {
+      const k = r.invoiceStatus || 'draft';
+      acc[k] = (acc[k] || 0) + (r.amountExclTax || 0);
+      acc[k + '_n'] = (acc[k + '_n'] || 0) + 1;
+      return acc;
+    }, {});
+
+    let html = `
+      <div style="background: var(--paper-soft); border: 1px solid var(--border); padding: 14px 18px; margin-bottom: 18px;">
+        <div style="display:flex; align-items:baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px;">
+          <span style="font-family: 'Shippori Mincho', serif; font-size: 16px; font-weight: 600; color: var(--ink);">${escapeHtml(cand?.name || '(削除済)')}</span>
+          ${job ? `<span style="color: var(--primary); font-size: 13px;">${escapeHtml(job.title || '')}</span>` : ''}
+          ${client ? `<span style="color: var(--ink-muted); font-size: 12px;">${escapeHtml(client)}</span>` : ''}
+          <span style="margin-left: auto; font-size: 11px; color: var(--ink-muted);">${a.rateMode === 'hourly' ? `時給 ¥${(a.hourlyRevenue || 0).toLocaleString()}/h × ${a.monthlyHours || 160}h` : '月額固定'}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; padding-top: 8px; border-top: 1px dashed var(--border);">
+          <div>
+            <div style="font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em;">総売上 (税抜)</div>
+            <div style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600;">${formatMan(totalExcl)}</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em;">総売上 (税込)</div>
+            <div style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; color: var(--ink-muted);">${formatMan(totalIncl)}</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em;">明細件数</div>
+            <div style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600;">${revs.length}件</div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em;">入金済み</div>
+            <div style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; color: #2C7A4A;">${formatMan(byStatus.paid || 0)} <span style="font-size: 11px; color: var(--ink-muted); font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 400;">(${byStatus.paid_n || 0}件)</span></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em;">請求中</div>
+            <div style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; color: var(--rank-a-fg);">${formatMan(byStatus.invoiced || 0)} <span style="font-size: 11px; color: var(--ink-muted); font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 400;">(${byStatus.invoiced_n || 0}件)</span></div>
+          </div>
+          <div>
+            <div style="font-size: 10px; color: var(--ink-muted); letter-spacing: 0.08em;">未送付</div>
+            <div style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; color: var(--ink-muted);">${formatMan(byStatus.draft || 0)} <span style="font-size: 11px; color: var(--ink-muted); font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 400;">(${byStatus.draft_n || 0}件)</span></div>
+          </div>
+          ${byStatus.overdue ? `
+          <div>
+            <div style="font-size: 10px; color: var(--rank-c-fg); letter-spacing: 0.08em;">期限超過</div>
+            <div style="font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; color: var(--rank-c-fg);">${formatMan(byStatus.overdue)} <span style="font-size: 11px; color: var(--ink-muted); font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 400;">(${byStatus.overdue_n}件)</span></div>
+          </div>` : ''}
+        </div>
+      </div>
+    `;
+
+    if (revs.length === 0) {
+      html += `<div class="empty-state" style="padding: 40px 20px;"><div class="empty-mark">空</div><div class="empty-title">売上明細がまだありません</div><div class="empty-text">下の「+ 売上を追加」から登録してください</div></div>`;
+    } else {
+      html += `
+        <table class="services-table" style="font-size: 12px;">
+          <thead>
+            <tr>
+              <th class="col-period" style="text-align: left;">対象月</th>
+              <th class="col-price" style="text-align: right;">単価</th>
+              <th class="col-period" style="text-align: right;">個数</th>
+              <th class="col-price" style="text-align: right;">税抜</th>
+              <th class="col-price" style="text-align: right;">税込</th>
+              <th style="text-align: center; width: 80px;">確度</th>
+              <th style="text-align: center; width: 90px;">請求</th>
+              <th style="text-align: center; width: 60px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${revs.map(r => {
+              const mode = r.rateMode || 'monthly';
+              const unitLabel = mode === 'hourly' ? `¥${(r.unitPrice || 0).toLocaleString()}/h` : `¥${(r.unitPrice || 0).toLocaleString()}`;
+              const qtyLabel = mode === 'hourly' ? `${r.quantity}h` : `×${r.quantity}`;
+              return `
+              <tr>
+                <td style="font-family: 'Shippori Mincho', serif; font-weight: 500;">${escapeHtml(r.month || '')}</td>
+                <td style="text-align: right;">${unitLabel}</td>
+                <td style="text-align: right; color: var(--ink-muted);">${qtyLabel}</td>
+                <td style="text-align: right; font-weight: 500;">${formatMan(r.amountExclTax)}</td>
+                <td style="text-align: right; color: var(--ink-muted);">${formatMan(r.amountInclTax)}</td>
+                <td style="text-align: center;">${r.confidence != null ? r.confidence + '%' : '—'}</td>
+                <td style="text-align: center;"><span class="revenue-status ${r.invoiceStatus || 'draft'}">${invoiceStatusLabel(r.invoiceStatus)}</span></td>
+                <td style="text-align: center;">
+                  <button class="icon-btn" onclick="closeRevenueDetailModal(); openRevenueModal('${r.id}', '${assignmentId}')" title="編集" style="width: 28px; height: 28px;">✎</button>
+                </td>
+              </tr>
+              ${r.notes || r.invoiceTitle || r.invoiceTo ? `
+              <tr>
+                <td colspan="8" style="background: var(--paper-soft); font-size: 11px; color: var(--ink-muted); padding: 6px 14px;">
+                  ${r.invoiceTitle ? `📝 ${escapeHtml(r.invoiceTitle)}` : ''}
+                  ${r.invoiceTo ? `${r.invoiceTitle ? ' / ' : ''}宛先: ${escapeHtml(r.invoiceTo)}` : ''}
+                  ${r.notes ? `${(r.invoiceTitle || r.invoiceTo) ? ' / ' : ''}${escapeHtml(r.notes)}` : ''}
+                  ${r.invoicedAt ? ` / 送付: ${r.invoicedAt}` : ''}
+                  ${r.dueDate ? ` / 期限: ${r.dueDate}` : ''}
+                  ${r.paidAt ? ` / 入金: ${r.paidAt}` : ''}
+                </td>
+              </tr>` : ''}
+              `;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background: var(--paper-soft); font-weight: 600;">
+              <td colspan="3" style="text-align: right;">合計 (${revs.length}件)</td>
+              <td style="text-align: right; font-family: 'Shippori Mincho', serif;">${formatMan(totalExcl)}</td>
+              <td style="text-align: right; font-family: 'Shippori Mincho', serif; color: var(--ink-muted);">${formatMan(totalIncl)}</td>
+              <td colspan="3"></td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    }
+
+    document.getElementById('rd-body').innerHTML = html;
+    document.getElementById('rd-add-btn').onclick = () => {
+      closeRevenueDetailModal();
+      openRevenueModal(null, assignmentId);
+    };
+    document.getElementById('revenue-detail-modal').classList.add('active');
+  }
+  function closeRevenueDetailModal() {
+    document.getElementById('revenue-detail-modal').classList.remove('active');
+  }
+
   function renderRevenueListForAssignment(asgnId, revs) {
     const sum = revs.reduce((s, r) => s + (r.amountExclTax || 0), 0);
     return `
