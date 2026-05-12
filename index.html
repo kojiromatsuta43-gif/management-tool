@@ -3167,10 +3167,14 @@
 
       <!-- メモ・所感 (面談中の自由記入欄) -->
       <div class="form-section">
-        <div class="form-section-title">面談メモ・所感 <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入)</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 11px; color: var(--ink-muted); letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;">面談メモ・所感 <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入)</span></div>
+          <button type="button" class="btn-ghost" onclick="aiExtractFromMemo()" id="ai-extract-btn" style="padding: 5px 12px; font-size: 11px; background: var(--accent); color: white; border-color: var(--accent); display: none;">✨ AIで自動入力</button>
+        </div>
         <div class="form-field">
           <textarea id="f-notes" placeholder="面談中の聞き取りメモ・推奨案件・所感などを自由に記入..." style="line-height: 1.7; height: 160px; resize: none;"></textarea>
         </div>
+        <div id="ai-extract-status" style="margin-top: 6px; font-size: 11px; color: var(--ink-muted); min-height: 14px;"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -3968,6 +3972,22 @@
       </div>
 
       <div class="form-section">
+        <div class="form-section-title">🤖 AI 自動入力設定 (Claude API)</div>
+        <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
+          Claude API キーを設定すると、候補者モーダルに「✨ AIで自動入力」ボタンが表示されます。
+          面談メモから氏名・希望単価・タグ・経験等を一括抽出。<br>
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color: var(--accent);">console.anthropic.com</a> で API キー取得 (sk-ant-... で始まる)。<br>
+          <span style="color: var(--ink-faint);">⚠ キーはブラウザの localStorage に保存されます (端末内のみ)</span>
+        </p>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="password" id="claude-api-key" placeholder="sk-ant-..." style="flex: 1; padding: 8px 12px; font-size: 12px; font-family: monospace;" />
+          <button class="btn-ghost" onclick="saveClaudeApiKey()" style="padding: 8px 16px;">保存</button>
+          <button class="btn-ghost" onclick="clearClaudeApiKey()" style="padding: 8px 12px; color: var(--rank-c-fg);">×</button>
+        </div>
+        <div id="claude-api-status" style="margin-top: 8px; font-size: 11px; color: var(--ink-muted);"></div>
+      </div>
+
+      <div class="form-section">
         <div class="form-section-title">スプレッドシートから取り込み</div>
         <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
           既存スプレッドシートから抽出したマスタデータを取り込めます。<br>
@@ -4573,6 +4593,216 @@
     if (typeof refreshMatchTarget === 'function') refreshMatchTarget();
   }
 
+  // ============ Claude API (AI 自動入力) ============
+  const CLAUDE_KEY_STORAGE = '__cm___claude_api_key';
+  function getClaudeApiKey() {
+    return localStorage.getItem(CLAUDE_KEY_STORAGE) || '';
+  }
+  function saveClaudeApiKey() {
+    const k = (document.getElementById('claude-api-key').value || '').trim();
+    if (!k) { showToast('キーを入力してください', true); return; }
+    if (!k.startsWith('sk-ant-')) { showToast('Claude のキー形式が違います (sk-ant-... が正しい)', true); return; }
+    localStorage.setItem(CLAUDE_KEY_STORAGE, k);
+    document.getElementById('claude-api-status').innerHTML = `<span style="color: #2C7A4A;">✓ 保存しました</span>`;
+    document.getElementById('claude-api-key').value = '••••' + k.slice(-6);
+    showToast('Claude API キーを保存しました');
+    refreshAiButtonVisibility();
+  }
+  function clearClaudeApiKey() {
+    if (!confirm('Claude API キーを削除しますか？')) return;
+    localStorage.removeItem(CLAUDE_KEY_STORAGE);
+    document.getElementById('claude-api-key').value = '';
+    document.getElementById('claude-api-status').innerHTML = '';
+    showToast('削除しました');
+    refreshAiButtonVisibility();
+  }
+  function refreshAiButtonVisibility() {
+    const btn = document.getElementById('ai-extract-btn');
+    if (btn) btn.style.display = getClaudeApiKey() ? '' : 'none';
+  }
+
+  async function callClaudeApi(systemPrompt, userPrompt) {
+    const key = getClaudeApiKey();
+    if (!key) throw new Error('API キー未設定');
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`API エラー (${res.status}): ${errText.substring(0, 200)}`);
+    }
+    const data = await res.json();
+    return data.content[0]?.text || '';
+  }
+
+  async function aiExtractFromMemo() {
+    const memo = (document.getElementById('f-notes').value || '').trim();
+    if (!memo) { showToast('メモを入力してください', true); return; }
+    if (!getClaudeApiKey()) { showToast('先にデータ管理で Claude API キーを設定してください', true); return; }
+    const statusEl = document.getElementById('ai-extract-status');
+    const btn = document.getElementById('ai-extract-btn');
+    btn.disabled = true; btn.textContent = '⏳ 解析中...';
+    if (statusEl) statusEl.textContent = 'Claude API に問い合わせ中...';
+
+    const systemPrompt = `あなたは人材紹介会社の面談メモ解析アシスタントです。面談メモから候補者情報を抽出し、純粋なJSONのみで返してください。説明文や \`\`\` などは含めないでください。`;
+    const userPrompt = `以下の面談メモから候補者情報を抽出してください。
+
+【面談メモ】
+${memo}
+
+【抽出スキーマ (該当のみ、不明はnull)】
+{
+  "name": "氏名 (フルネーム)",
+  "age": 整数,
+  "location": "居住地",
+  "recruiter": "面談担当者名",
+  "experienceYears": 営業経験年数(整数),
+  "desiredRate": 希望時給上限(整数,円),
+  "desiredRateMin": 希望時給下限(整数,円),
+  "desiredRateMode": "hourly"または"monthly",
+  "workingHours": 月間稼働可能時間(整数),
+  "startDate": "YYYY-MM-DD" または "即日" (日付or即日のみ),
+  "workStyle": "remote"|"onsite"|"hybrid",
+  "position": "IS"|"FS"|"both",
+  "customer": "toC"|"toB"|"both",
+  "currentStatus": "employed"|"leaving"|"unemployed",
+  "candStatus": "new"|"interviewed"|"proposing"|"active"|"paused"|"ended"|"ng",
+  "rankCtoB": "toC"|"toB"|"両方"|"未経験",
+  "rankSell": "A"|"B"|"C"|"Z" (売れそう4軸ランク),
+  "rankNotAbsent": "A"|"B"|"C"|"Z" (休まなそう),
+  "rankSelfDriven": "A"|"B"|"C"|"Z" (自走できる),
+  "tags": ["SaaS","反響(インバウンド)","新規開拓","BtoB","エンタープライズ","クロージング" 等の配列],
+  "source": "in-house"|"partner",
+  "partnerCompany": "パートナー企業名",
+  "summary": "推奨案件や強みの所感 (100字以内)"
+}
+
+返答は必ず { から始まる純粋なJSONのみ。`;
+
+    try {
+      const text = await callClaudeApi(systemPrompt, userPrompt);
+      // Extract JSON from response (might have leading/trailing text)
+      let jsonText = text.trim();
+      const startIdx = jsonText.indexOf('{');
+      const endIdx = jsonText.lastIndexOf('}');
+      if (startIdx >= 0 && endIdx > startIdx) jsonText = jsonText.substring(startIdx, endIdx + 1);
+      const data = JSON.parse(jsonText);
+
+      // Apply to form
+      const applied = [];
+      const set = (id, val) => {
+        if (val == null || val === '') return false;
+        const el = document.getElementById(id);
+        if (el && !el.value) { el.value = val; return true; }
+        return false;
+      };
+      const setToggle = (field, val) => {
+        if (!val) return false;
+        const active = document.querySelector(`#form-modal .toggle-group[data-field="${field}"] .toggle-option.active`);
+        if (active) return false;
+        const target = document.querySelector(`#form-modal .toggle-group[data-field="${field}"] .toggle-option[data-value="${val}"]`);
+        if (target) { target.classList.add('active'); return true; }
+        return false;
+      };
+      const setRank = (field, val) => {
+        if (!val) return false;
+        const picker = document.querySelector(`#form-modal .rank-picker[data-field="${field}"]`);
+        if (!picker || picker.querySelector('.rank-option.active')) return false;
+        const target = picker.querySelector(`.rank-option[data-value="${val}"]`);
+        if (target) { target.classList.add('active', rankClass(val)); return true; }
+        return false;
+      };
+
+      if (set('f-name', data.name)) applied.push(`氏名: ${data.name}`);
+      if (set('f-recruiter', data.recruiter)) applied.push(`担当: ${data.recruiter}`);
+      if (set('f-experienceYears', data.experienceYears)) applied.push(`経験${data.experienceYears}年`);
+      if (set('f-workingHours', data.workingHours)) applied.push(`稼働${data.workingHours}h`);
+      if (data.startDate === '即日') {
+        if (set('f-startDate', new Date().toISOString().split('T')[0])) applied.push('開始: 即日');
+      } else if (data.startDate && /^\d{4}-\d{2}-\d{2}/.test(data.startDate)) {
+        if (set('f-startDate', data.startDate)) applied.push(`開始: ${data.startDate}`);
+      }
+      if (set('f-currentStatus', data.currentStatus)) applied.push(`状況: ${statusLabel(data.currentStatus)}`);
+      if (set('f-status', data.candStatus)) applied.push(`ステータス: ${candStatusLabel(data.candStatus)}`);
+      if (set('f-rankCtoB', data.rankCtoB)) applied.push(`toC/B: ${data.rankCtoB}`);
+      if (setToggle('workStyle', data.workStyle)) applied.push(`勤務: ${workStyleLabel(data.workStyle)}`);
+      if (setToggle('position', data.position)) applied.push(`ポジション: ${positionLabel(data.position)}`);
+      if (setToggle('customer', data.customer)) applied.push(`顧客: ${customerLabel(data.customer)}`);
+      if (setToggle('source', data.source)) applied.push(`経路: ${data.source}`);
+      if (data.source === 'partner' && data.partnerCompany) {
+        if (set('f-partnerCompany', data.partnerCompany)) applied.push(`パートナー: ${data.partnerCompany}`);
+        updatePartnerFieldVisibility();
+      }
+      if (setRank('rankSell', data.rankSell)) applied.push(`売れそう:${data.rankSell}`);
+      if (setRank('rankNotAbsent', data.rankNotAbsent)) applied.push(`休まなそう:${data.rankNotAbsent}`);
+      if (setRank('rankSelfDriven', data.rankSelfDriven)) applied.push(`自走:${data.rankSelfDriven}`);
+
+      // 希望単価
+      if (data.desiredRate) {
+        const mode = data.desiredRateMode === 'monthly' ? 'monthly' : 'hourly';
+        setRateMode('desired', mode);
+        const amt = document.querySelector('.rate-amount[data-target="desired"]');
+        if (amt && !amt.value) {
+          amt.value = mode === 'monthly' && data.desiredRate > 1000 ? Math.round(data.desiredRate / 10000) : data.desiredRate;
+          if (data.desiredRateMin) {
+            const minEl = document.querySelector('.rate-amount-min[data-target="desired"]');
+            if (minEl) minEl.value = mode === 'monthly' && data.desiredRateMin > 1000 ? Math.round(data.desiredRateMin / 10000) : data.desiredRateMin;
+          }
+          updateConversion('desired');
+          applied.push(`希望単価: ${data.desiredRate}${mode === 'hourly' ? '円/h' : ''}`);
+        }
+      }
+
+      // タグ
+      if (Array.isArray(data.tags) && data.tags.length) {
+        // Add new tags to selection (merge with existing)
+        const newTags = data.tags.filter(t => t && !currentCandTags.includes(t));
+        if (newTags.length) {
+          // Register tags not in default groups to custom master
+          const allDefault = new Set();
+          Object.values(CAND_TAG_GROUPS).forEach(arr => arr.forEach(t => allDefault.add(t)));
+          for (const t of newTags) {
+            if (!allDefault.has(t)) await addToCustomTagMaster(t);
+          }
+          currentCandTags = currentCandTags.concat(newTags);
+          renderCandTagsGrid(currentCandTags);
+          applied.push(`タグ: ${newTags.slice(0,5).join(', ')}${newTags.length > 5 ? `他${newTags.length-5}` : ''}`);
+        }
+      }
+
+      // 所感を notes の上部に追加
+      if (data.summary) {
+        const notesEl = document.getElementById('f-notes');
+        if (notesEl && !notesEl.value.includes(data.summary)) {
+          notesEl.value = data.summary + '\n\n--- 元メモ ---\n' + memo;
+        }
+      }
+
+      btn.disabled = false; btn.textContent = '✨ AIで自動入力';
+      if (statusEl) statusEl.innerHTML = applied.length
+        ? `<span style="color: #2C7A4A;">✓ ${applied.length}項目を自動入力: ${applied.join(' / ')}</span>`
+        : `<span>抽出項目なし (既に入力済み or メモ情報不足)</span>`;
+      showToast(`${applied.length}項目を AI 自動入力しました`);
+    } catch (e) {
+      console.error(e);
+      btn.disabled = false; btn.textContent = '✨ AIで自動入力';
+      if (statusEl) statusEl.innerHTML = `<span style="color: var(--rank-c-fg);">✗ ${e.message}</span>`;
+      showToast('AI 自動入力に失敗: ' + e.message, true);
+    }
+  }
+
   // ============ Memo Auto-Grow ============
   function autoGrowMemo(el) {
     if (!el) return;
@@ -5046,6 +5276,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     }
     // 経路セレクトに応じてパートナー企業欄を表示/非表示
     updatePartnerFieldVisibility();
+    refreshAiButtonVisibility();
     document.getElementById('form-modal').classList.add('active');
   }
   function closeModal() {
@@ -9246,6 +9477,17 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
   function openDataModal() {
     document.getElementById('data-modal').classList.add('active');
     updateDataStats();
+    // API key 状態を表示
+    const k = getClaudeApiKey();
+    const keyEl = document.getElementById('claude-api-key');
+    const statusEl = document.getElementById('claude-api-status');
+    if (keyEl && k) {
+      keyEl.value = '••••' + k.slice(-6);
+      if (statusEl) statusEl.innerHTML = '<span style="color: #2C7A4A;">✓ API キー設定済み</span>';
+    } else if (keyEl) {
+      keyEl.value = '';
+      if (statusEl) statusEl.innerHTML = '<span style="color: var(--ink-faint);">未設定 (AI機能無効)</span>';
+    }
   }
   function closeDataModal() {
     document.getElementById('data-modal').classList.remove('active');
