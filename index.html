@@ -2544,7 +2544,7 @@
 
 <nav class="tab-nav">
   <div class="tab-nav-inner">
-    <button class="tab-btn active" data-tab="candidates">求職者 <span class="tab-count" id="tab-count-candidates">0</span></button>
+    <button class="tab-btn active" data-tab="candidates">候補者 <span class="tab-count" id="tab-count-candidates">0</span></button>
     <button class="tab-btn" data-tab="jobs">案件 <span class="tab-count" id="tab-count-jobs">0</span></button>
     <button class="tab-btn" data-tab="assignments">稼働人材 <span class="tab-count" id="tab-count-assignments">0</span></button>
     <button class="tab-btn" data-tab="partners">パートナー <span class="tab-count" id="tab-count-partners">0</span></button>
@@ -2554,7 +2554,7 @@
 </nav>
 
 <main class="main">
-  <!-- ===== 求職者タブ ===== -->
+  <!-- ===== 候補者タブ ===== -->
   <div class="tab-panel active" id="panel-candidates">
     <div class="stats" id="stats">
       <div class="stat">
@@ -2797,7 +2797,7 @@
         <div class="stat-value" id="pstat-regular" style="color: var(--rank-a-fg);">—</div>
       </div>
       <div class="stat">
-        <div class="stat-label">紐付き求職者数</div>
+        <div class="stat-label">紐付き候補者数</div>
         <div class="stat-value" id="pstat-candidates">—</div>
       </div>
       <div class="stat">
@@ -2930,7 +2930,7 @@
             <input type="text" id="f-recruiter" placeholder="鈴木" />
           </div>
           <div class="form-field">
-            <label>求職者ステータス <span style="color: var(--accent);">*</span></label>
+            <label>候補者ステータス <span style="color: var(--accent);">*</span></label>
             <select id="f-status">
               <option value="">選択してください</option>
               <option value="new">面談前</option>
@@ -3062,12 +3062,12 @@
 
       <!-- 単価 -->
       <div class="form-section">
-        <div class="form-section-title">単価(求職者の希望 / クライアント提案)</div>
+        <div class="form-section-title">単価(候補者の希望 / クライアント提案)</div>
         <div class="form-grid">
           <!-- 希望単価 -->
           <div class="rate-block" data-rate="desired">
             <div class="rate-header">
-              <div class="rate-title"><span class="rate-title-mark"></span>希望単価(求職者)</div>
+              <div class="rate-title"><span class="rate-title-mark"></span>希望単価(候補者)</div>
               <div class="rate-mode-switch">
                 <button type="button" class="rate-mode-btn active" data-mode="hourly">時給</button>
                 <button type="button" class="rate-mode-btn" data-mode="monthly">月給</button>
@@ -3822,9 +3822,9 @@
         <div class="form-section-title">人材・案件</div>
         <div class="form-grid">
           <div class="form-field">
-            <label>求職者 <span style="color: var(--accent);">*</span></label>
+            <label>候補者 <span style="color: var(--accent);">*</span></label>
             <select id="af-candId">
-              <option value="">— 求職者を選択 —</option>
+              <option value="">— 候補者を選択 —</option>
             </select>
           </div>
           <div class="form-field">
@@ -3950,7 +3950,7 @@
       <div class="form-section">
         <div class="form-section-title">全データのバックアップ</div>
         <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.6;">
-          求職者・案件・提案・パートナーマスタを含む全データを単一の JSON ファイルとして書き出し/読み込みできます。<br>
+          候補者・案件・提案・パートナーマスタを含む全データを単一の JSON ファイルとして書き出し/読み込みできます。<br>
           機種変更時の引越し・複数端末でのデータ移動・バックアップ目的にご利用ください。
         </p>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -3975,8 +3975,8 @@
             <span style="display: block; font-size: 10px; color: var(--ink-faint); margin-top: 2px; font-weight: normal;">親密度・担当者・連絡ツール・メモを含む</span>
           </button>
           <button class="btn-ghost" onclick="importAllFromSheet()" style="padding: 10px 16px; text-align: left;">
-            ⬇ 求職者・案件・稼働・売上明細を取り込む
-            <span style="display: block; font-size: 10px; color: var(--ink-faint); margin-top: 2px; font-weight: normal;">求職者161名 / 案件96件 / 稼働58件 / 売上明細104件 / 原価明細28件 (2026-04 は人材名で正確紐付け)</span>
+            ⬇ 候補者・案件・稼働・売上明細を取り込む
+            <span style="display: block; font-size: 10px; color: var(--ink-faint); margin-top: 2px; font-weight: normal;">候補者161名 / 案件96件 / 稼働58件 / 売上明細104件 / 原価明細28件 (2026-04 は人材名で正確紐付け)</span>
           </button>
         </div>
         <div id="sheet-import-status" style="margin-top: 10px; font-size: 11px; color: var(--ink-muted);"></div>
@@ -3988,7 +3988,7 @@
           Excel / Google スプレッドシートで開ける CSV 形式で書き出します（Shift-JIS BOM 付き UTF-8）。
         </p>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn-ghost" onclick="exportCSV('candidates')" style="padding: 8px 14px; font-size: 12px;">求職者 CSV</button>
+          <button class="btn-ghost" onclick="exportCSV('candidates')" style="padding: 8px 14px; font-size: 12px;">候補者 CSV</button>
           <button class="btn-ghost" onclick="exportCSV('jobs')" style="padding: 8px 14px; font-size: 12px;">案件 CSV</button>
           <button class="btn-ghost" onclick="exportCSV('partners')" style="padding: 8px 14px; font-size: 12px;">パートナー CSV</button>
           <button class="btn-ghost" onclick="exportCSV('proposals')" style="padding: 8px 14px; font-size: 12px;">提案 CSV</button>
@@ -4374,7 +4374,7 @@
     const hours = c.workingHours || DEFAULT_HOURS;
     const isCustomHours = !!c.workingHours;
     function rateBlock(rate, mode, minRate, isProposal) {
-      if (!rate) return `<div class="detail-rate-card${isProposal ? ' proposal' : ''}"><div class="detail-rate-label">${isProposal ? '提案単価(クライアント)' : '希望単価(求職者)'}</div><div class="detail-rate-main"><span class="empty" style="font-size: 14px; color: var(--ink-faint); font-weight: normal;">未入力</span></div></div>`;
+      if (!rate) return `<div class="detail-rate-card${isProposal ? ' proposal' : ''}"><div class="detail-rate-label">${isProposal ? '提案単価(クライアント)' : '希望単価(候補者)'}</div><div class="detail-rate-main"><span class="empty" style="font-size: 14px; color: var(--ink-faint); font-weight: normal;">未入力</span></div></div>`;
       const monthly = rateToMonthlyYen(rate, mode, hours);
       const hourly = rateToHourly(rate, mode, hours);
       let mainHtml, subHtml;
@@ -4386,7 +4386,7 @@
         const minHourly = rateToHourly(minRate, mode, hours);
         minHtml = `<div class="detail-rate-sub" style="margin-top: 4px;">最低: ${mode === 'hourly' ? formatYen(minHourly) + '/時 (月 ' + formatMan(minMonthly) + ')' : formatMan(minMonthly) + '/月 (時給 ' + formatYen(minHourly) + ')'}</div>`;
       }
-      return `<div class="detail-rate-card${isProposal ? ' proposal' : ''}"><div class="detail-rate-label">${isProposal ? '提案単価(クライアント)' : '希望単価(求職者)'}</div><div class="detail-rate-main">${mainHtml}</div><div class="detail-rate-sub">${subHtml}${isCustomHours ? '' : ' <span style="color: var(--ink-faint);">(160h想定)</span>'}</div>${minHtml}</div>`;
+      return `<div class="detail-rate-card${isProposal ? ' proposal' : ''}"><div class="detail-rate-label">${isProposal ? '提案単価(クライアント)' : '希望単価(候補者)'}</div><div class="detail-rate-main">${mainHtml}</div><div class="detail-rate-sub">${subHtml}${isCustomHours ? '' : ' <span style="color: var(--ink-faint);">(160h想定)</span>'}</div>${minHtml}</div>`;
     }
     let marginBlock = '';
     if (desiredRate && c.proposalRate) {
@@ -5158,7 +5158,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       <div class="detail-section"><h3>基本情報</h3><dl class="detail-grid">
         <dt>面談日</dt><dd>${safe(c.interviewDate)}</dd>
         <dt>担当</dt><dd>${safe(c.recruiter)}</dd>
-        <dt>求職者ステータス</dt><dd>${c.status ? `<span style="padding: 2px 8px; background: var(--paper-soft); color: ${candStatusColor(c.status)}; border: 1px solid ${candStatusColor(c.status)}; font-size: 11px;">${candStatusLabel(c.status)}</span>` : '<span class="empty">未入力</span>'}</dd>
+        <dt>候補者ステータス</dt><dd>${c.status ? `<span style="padding: 2px 8px; background: var(--paper-soft); color: ${candStatusColor(c.status)}; border: 1px solid ${candStatusColor(c.status)}; font-size: 11px;">${candStatusLabel(c.status)}</span>` : '<span class="empty">未入力</span>'}</dd>
         <dt>現在の状況</dt><dd>${c.currentStatus ? statusLabel(c.currentStatus) : '<span class="empty">未入力</span>'}</dd>
         <dt>経路</dt><dd>${sourceLabel}</dd>
       </dl></div>
@@ -5245,7 +5245,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         let mainHtml, subHtml;
         if (mode === 'hourly') { mainHtml = `<span class="rate-num">${formatYen(hourly).replace('円', '')}</span> 円/時`; subHtml = `月給ベース ${formatMan(monthly)}`; }
         else { mainHtml = `<span class="rate-num">${formatMan(monthly).replace('万円', '')}</span> 万円/月`; subHtml = `時給ベース ${formatYen(hourly)}`; }
-        return `<div class="print-rate-card${isProposal ? ' proposal' : ''}"><div class="print-rate-lbl">${isProposal ? '提案単価(クライアント)' : '希望単価(求職者)'}</div><div class="print-rate-main">${mainHtml}</div><div class="print-rate-sub">${subHtml}${isCustomHours ? '' : ' (160h想定)'}</div></div>`;
+        return `<div class="print-rate-card${isProposal ? ' proposal' : ''}"><div class="print-rate-lbl">${isProposal ? '提案単価(クライアント)' : '希望単価(候補者)'}</div><div class="print-rate-main">${mainHtml}</div><div class="print-rate-sub">${subHtml}${isCustomHours ? '' : ' (160h想定)'}</div></div>`;
       };
       let marginHtml = '';
       if (desiredRate && c.proposalRate) {
@@ -5368,7 +5368,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     const addBtn = document.getElementById('add-btn');
     const search = document.getElementById('search');
     if (tab === 'jobs') { addBtn.textContent = '案件を追加'; addBtn.style.display = ''; search.placeholder = '案件名・クライアント名で検索…'; renderJobs(); }
-    else if (tab === 'candidates') { addBtn.textContent = '求職者を追加'; addBtn.style.display = ''; search.placeholder = '氏名・サービス名・業界・メモで検索…'; render(); }
+    else if (tab === 'candidates') { addBtn.textContent = '候補者を追加'; addBtn.style.display = ''; search.placeholder = '氏名・サービス名・業界・メモで検索…'; render(); }
     else if (tab === 'assignments') { addBtn.style.display = 'none'; search.placeholder = '人材名・案件名で検索…'; renderAssignments(); }
     else if (tab === 'partners') { addBtn.style.display = 'none'; search.placeholder = 'パートナー名・担当者・メモで検索…'; renderPartners(); }
     else if (tab === 'dashboard') { addBtn.style.display = 'none'; search.placeholder = '検索…'; renderDashboard(); }
@@ -7389,7 +7389,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     jobs.forEach(jb => { if (jb.preferredIndustry && !INDUSTRY_OPTIONS.includes(jb.preferredIndustry)) userIndustries.add(jb.preferredIndustry); });
     userIndustries.forEach(industry => { const option = document.createElement('option'); option.value = industry; datalist.appendChild(option); });
 
-    document.getElementById('add-btn').textContent = '求職者を追加';
+    document.getElementById('add-btn').textContent = '候補者を追加';
 
     // Load assignments (Phase 2)
     assignments = await loadAssignments();
@@ -7451,12 +7451,12 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         await window.storage.set('_migrated_rate_unit_v1', '1', true);
         if (fixedJobs || fixedCands) {
           console.log(`Rate unit migration: jobs=${fixedJobs}, candidates=${fixedCands}`);
-          setTimeout(() => showToast(`単価表記を修正: 案件${fixedJobs}件 / 求職者${fixedCands}名`), 1000);
+          setTimeout(() => showToast(`単価表記を修正: 案件${fixedJobs}件 / 候補者${fixedCands}名`), 1000);
         }
       }
     } catch (e) { console.warn('Migration failed:', e); }
 
-    // 求職者ステータス: 稼働中assignmentがあるなら自動で 'active'、それ以外はnotesから推定
+    // 候補者ステータス: 稼働中assignmentがあるなら自動で 'active'、それ以外はnotesから推定
     try {
       const statFlag = await window.storage.get('_migrated_cand_status_v1', true).catch(() => null);
       if (!statFlag) {
@@ -7595,7 +7595,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     }
     if (candSel) {
       const cur = candSel.value;
-      candSel.innerHTML = '<option value="">— 求職者を選択 —</option>';
+      candSel.innerHTML = '<option value="">— 候補者を選択 —</option>';
       [...candidates].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja')).forEach(c => {
         const o = document.createElement('option');
         o.value = c.id; o.textContent = c.name || '(無名)';
@@ -7733,7 +7733,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     const inputRev = parseFloat(document.getElementById('af-monthlyRevenue').value) || 0;
     const inputCost = parseFloat(document.getElementById('af-monthlyCost').value) || 0;
     const monthlyHours = parseFloat(document.getElementById('af-monthlyHours').value) || 160;
-    if (!candId) { showToast('求職者を選択してください', true); return; }
+    if (!candId) { showToast('候補者を選択してください', true); return; }
     if (!startMonth) { showToast('開始月を入力してください', true); return; }
     if (!inputRev || !inputCost) {
       showToast(mode === 'hourly' ? '時給(売上)と時給(原価)を入力してください' : '月売上と月原価を入力してください', true);
@@ -7843,7 +7843,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
   function renderAssignmentCard(a) {
     const cand = findCandidateById(a.candId);
     const job = findJobById(a.jobId);
-    const candName = cand ? cand.name : '(削除された求職者)';
+    const candName = cand ? cand.name : '(削除された候補者)';
     const jobTitle = job ? job.title : (a.jobId ? '(削除された案件)' : '—');
     const client = job?.client || a.clientOverride || '';
     const isActive = a.status === 'active';
@@ -7961,7 +7961,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         document.querySelectorAll('#assignment-modal .toggle-group[data-afield="source"] .toggle-option').forEach(o => o.classList.remove('active'));
         opt.classList.add('active');
         document.getElementById('af-partner-field').style.display = opt.dataset.value === 'partner' ? '' : 'none';
-        // 求職者の partnerCompany を初期値として引き継ぐ
+        // 候補者の partnerCompany を初期値として引き継ぐ
         if (opt.dataset.value === 'partner') {
           const candId = document.getElementById('af-candId').value;
           const cand = candidates.find(c => c.id === candId);
@@ -7981,7 +7981,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         if (partnerSel.value) document.getElementById('af-partnerCompany').value = partnerSel.value;
       });
     }
-    // 求職者選択時、candidate.partnerCompany があれば自動で経路をパートナーに
+    // 候補者選択時、candidate.partnerCompany があれば自動で経路をパートナーに
     const candSel = document.getElementById('af-candId');
     if (candSel) {
       candSel.addEventListener('change', () => {
@@ -8651,7 +8651,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
   async function confirmDeletePartner() {
     if (!editingPartnerId) return;
     const p = partnerObjs.find(x => x.id === editingPartnerId);
-    if (!confirm(`「${p?.name || 'このパートナー'}」を削除しますか？\n紐付く求職者の経路情報は残ります。`)) return;
+    if (!confirm(`「${p?.name || 'このパートナー'}」を削除しますか？\n紐付く候補者の経路情報は残ります。`)) return;
     const ok = await deletePartnerObjFromStorage(editingPartnerId);
     if (ok) {
       const removed = partnerObjs.find(x => x.id === editingPartnerId);
@@ -9095,7 +9095,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       const revCount = (typeof revenues !== 'undefined' && Array.isArray(revenues)) ? revenues.length : 0;
       const partnerObjCount = (typeof partnerObjs !== 'undefined' && Array.isArray(partnerObjs)) ? partnerObjs.length : partnerCount;
       const costCount = (typeof costs !== 'undefined' && Array.isArray(costs)) ? costs.length : 0;
-      el.innerHTML = `現在のデータ件数 — 求職者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 稼働: <b>${asgnCount}</b> / 売上: <b>${revCount}</b> / 原価: <b>${costCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerObjCount}</b>`;
+      el.innerHTML = `現在のデータ件数 — 候補者: <b>${candCount}</b> / 案件: <b>${jobCount}</b> / 稼働: <b>${asgnCount}</b> / 売上: <b>${revCount}</b> / 原価: <b>${costCount}</b> / 提案: <b>${propCount}</b> / パートナー: <b>${partnerObjCount}</b>`;
     }
   }
 
@@ -9197,7 +9197,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           if (c && c.id) { await window.storage.set(`cst:${c.id}`, JSON.stringify(c), true); imported.cs++; }
         }
       }
-      showToast(`読込完了: 求職者${imported.c}/案件${imported.j}/稼働${imported.a}/売上${imported.r}/原価${imported.cs}/パートナー${imported.pn || imported.pt}`);
+      showToast(`読込完了: 候補者${imported.c}/案件${imported.j}/稼働${imported.a}/売上${imported.r}/原価${imported.cs}/パートナー${imported.pn || imported.pt}`);
       // Reload page to refresh in-memory state cleanly
       setTimeout(() => location.reload(), 800);
     } catch (e) {
@@ -9293,7 +9293,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           const c = candidates.find(x => x.id === a.candId);
           const j = jobs.find(x => x.id === a.jobId);
           return {
-            id: a.id, 求職者ID: a.candId, 求職者名: c?.name || '',
+            id: a.id, 候補者ID: a.candId, 候補者名: c?.name || '',
             案件ID: a.jobId || '', 案件名: j?.title || '', クライアント: j?.client || a.clientOverride || '',
             開始月: a.startMonth, 終了月: a.endMonth, ステータス: a.status,
             単価モード: a.rateMode || 'monthly',
@@ -9312,7 +9312,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           const job = asgn ? jobs.find(j => j.id === asgn.jobId) : null;
           return {
             id: r.id, 稼働ID: r.assignmentId || '',
-            求職者名: cand?.name || '', 案件名: job?.title || '', クライアント: job?.client || asgn?.clientOverride || '',
+            候補者名: cand?.name || '', 案件名: job?.title || '', クライアント: job?.client || asgn?.clientOverride || '',
             対象月: r.month, 単価モード: r.rateMode,
             単価: r.unitPrice, 個数: r.quantity,
             売上税抜: r.amountExclTax, 税率: r.taxRate, 売上税込: r.amountInclTax,
@@ -9446,7 +9446,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       console.log('Auto-seeded from sheet:', added);
       // Quietly inform user
       setTimeout(() => {
-        showToast(`スプシから自動登録: 稼働${added.a}件 / 求職者${added.c}名 / 売上${added.r}件 / 原価${added.cs}件`);
+        showToast(`スプシから自動登録: 稼働${added.a}件 / 候補者${added.c}名 / 売上${added.r}件 / 原価${added.cs}件`);
       }, 600);
     } catch (e) {
       console.warn('Auto-seed failed:', e);
@@ -9465,7 +9465,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       const ac = (data.assignments || []).length;
       const rc = (data.revenues || []).length;
       const csc = (data.costs || []).length;
-      if (!confirm(`スプシから以下を取り込みます。\n\n求職者: ${cc}名\n案件: ${jc}件\n稼働: ${ac}件\n売上明細: ${rc}件\n原価明細: ${csc}件\n\nマージ動作: 既存IDと重複しないものを追加し、同じIDなら上書きします。続行しますか？`)) {
+      if (!confirm(`スプシから以下を取り込みます。\n\n候補者: ${cc}名\n案件: ${jc}件\n稼働: ${ac}件\n売上明細: ${rc}件\n原価明細: ${csc}件\n\nマージ動作: 既存IDと重複しないものを追加し、同じIDなら上書きします。続行しますか？`)) {
         if (statusEl) statusEl.textContent = '';
         return;
       }
@@ -9502,7 +9502,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         if (idx >= 0) costs[idx] = c; else { costs.push(c); added.cs++; }
       }
       render(); renderJobs(); renderAssignments(); updateTabCounts();
-      if (statusEl) statusEl.textContent = `✓ 追加: 求職者${added.c}/案件${added.j}/稼働${added.a}/売上${added.r}/原価${added.cs}`;
+      if (statusEl) statusEl.textContent = `✓ 追加: 候補者${added.c}/案件${added.j}/稼働${added.a}/売上${added.r}/原価${added.cs}`;
       showToast(`取り込み完了`);
     } catch (e) {
       console.error(e);
