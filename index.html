@@ -3190,7 +3190,11 @@
       <div class="form-section">
         <div class="form-section-title">案件基本情報</div>
         <div class="form-grid form-grid-3">
-          <div class="form-field form-full">
+          <div class="form-field">
+            <label>案件No</label>
+            <input type="text" id="jf-caseNo" placeholder="例: 1, 30, A-12" />
+          </div>
+          <div class="form-field form-span-2">
             <label>案件名 <span style="color: var(--accent);">*</span></label>
             <input type="text" id="jf-title" placeholder="例:SaaS新規開拓IS / インサイドセールス即戦力" />
           </div>
@@ -4928,7 +4932,7 @@
       if (jobFilters.work !== 'all') { if (j.reqWorkStyle && j.reqWorkStyle !== 'any' && j.reqWorkStyle !== jobFilters.work) return false; }
       if (jobFilters.pos !== 'all') { if (j.reqPosition && j.reqPosition !== 'both' && j.reqPosition !== jobFilters.pos) return false; }
       if (q) {
-        const match = (j.title || '').toLowerCase().includes(q) || (j.client || '').toLowerCase().includes(q) || (j.recruiter || '').toLowerCase().includes(q) || (j.background || '').toLowerCase().includes(q) || (j.preferredIndustry || '').toLowerCase().includes(q);
+        const match = (j.title || '').toLowerCase().includes(q) || (j.client || '').toLowerCase().includes(q) || (j.recruiter || '').toLowerCase().includes(q) || (j.background || '').toLowerCase().includes(q) || (j.preferredIndustry || '').toLowerCase().includes(q) || String(j.caseNo || '').toLowerCase().includes(q);
         if (!match) return false;
       }
       return true;
@@ -4982,7 +4986,7 @@
     const jobProposals = proposals.filter(p => p.jobId === j.id);
     return `<div class="card" onclick="openJobDetail('${j.id}')"><div class="card-accent" style="background: var(--accent);"></div>
       <div class="card-header"><div class="card-name-row"><div style="flex: 1; min-width: 0;">
-        <div class="card-name">${escapeHtml(j.title || '(無題)')}</div>
+        <div class="card-name">${j.caseNo ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--primary); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px;">No.${escapeHtml(j.caseNo)}</span>` : ''}${escapeHtml(j.title || '(無題)')}</div>
         <div class="job-meta-row"><span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>${isUrgent ? '<span class="job-status" style="background: var(--rank-c-bg); color: var(--rank-c-fg); border-color: var(--rank-c-border);">期限間近</span>' : ''}</div>
         <div class="card-meta" style="margin-top: 6px;">${j.client ? `<strong style="color: var(--ink);">${escapeHtml(j.client)}</strong>` : '<span style="color: var(--ink-faint);">クライアント未設定</span>'}${j.recruiter ? ` · 担当 ${escapeHtml(j.recruiter)}` : ''}</div>
       </div><div class="card-actions" onclick="event.stopPropagation()"><button class="icon-btn" onclick="openJobModal('${j.id}')" title="編集">✎</button></div></div></div>
@@ -5029,6 +5033,7 @@
       const j = jobs.find(x => x.id === id);
       if (j) {
         document.getElementById('jf-id').value = j.id;
+        document.getElementById('jf-caseNo').value = j.caseNo || '';
         document.getElementById('jf-title').value = j.title || '';
         document.getElementById('jf-client').value = j.client || '';
         document.getElementById('jf-recruiter').value = j.recruiter || '';
@@ -5047,7 +5052,7 @@
       }
     } else {
       document.getElementById('jf-id').value = '';
-      ['jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background'].forEach(id => document.getElementById(id).value = '');
+      ['jf-caseNo','jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('jf-status').value = 'open';
       const today = new Date();
       document.getElementById('jf-registeredDate').value = today.toISOString().split('T')[0];
@@ -5124,6 +5129,7 @@
     const numOrNull = (id) => { const v = document.getElementById(id).value; return v === '' ? null : Number(v); };
     const j = {
       id, createdAt: existing ? existing.createdAt : Date.now(), updatedAt: Date.now(), _v: 1,
+      caseNo: document.getElementById('jf-caseNo').value.trim() || null,
       title, client,
       recruiter: document.getElementById('jf-recruiter').value.trim() || null,
       status: document.getElementById('jf-status').value || 'open',
@@ -5174,7 +5180,7 @@
   function openJobDetail(id) {
     const j = jobs.find(x => x.id === id);
     if (!j) return;
-    document.getElementById('job-detail-title').textContent = j.title;
+    document.getElementById('job-detail-title').textContent = (j.caseNo ? `No.${j.caseNo} ` : '') + j.title;
     const safe = (v) => v ? escapeHtml(String(v)) : '<span class="empty">未入力</span>';
     const hours = j.reqWorkingHours || DEFAULT_HOURS;
     let rateBlock = '';
@@ -8291,7 +8297,7 @@
       } else if (kind === 'jobs') {
         name = 'jobs';
         rows = (jobs || []).map(j => ({
-          id: j.id, 案件名: j.title, クライアント: j.client, 担当: j.recruiter, ステータス: j.status,
+          id: j.id, 案件No: j.caseNo, 案件名: j.title, クライアント: j.client, 担当: j.recruiter, ステータス: j.status,
           登録日: j.registeredDate, 募集期限: j.deadline, 開始希望: j.startDate,
           勤務形態: j.reqWorkStyle, ポジション: j.reqPosition, 顧客: j.reqCustomer,
           稼働時間: j.reqWorkingHours, 必要経験年: j.reqExperienceYears, 歓迎業界: j.preferredIndustry,

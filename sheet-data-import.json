@@ -1,8 +1,8 @@
 {
   "_schema": 1,
-  "_exportedAt": "2026-05-12T11:13:17.123179Z",
+  "_exportedAt": "2026-05-12T11:39:27.120316Z",
   "_app": "management-tool",
-  "_note": "スプシから抽出 (2026-04: 人材名で売上/原価を正しく紐付け)",
+  "_note": "スプシから抽出 (案件Noフィールド追加 / 2026-04人材紐付け済み)",
   "candidates": [
     {
       "id": "c_seed_1778512114787_sjvm",
@@ -6028,7 +6028,8 @@
       "proposalRateMax": 179200,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 1\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: IS経験、勤怠管理\nメモ: 単価低いから配信なし"
+      "background": "案件No: 1\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: IS経験、勤怠管理\nメモ: 単価低いから配信なし",
+      "caseNo": "1"
     },
     {
       "id": "j_seed_1778512212335_c4xs",
@@ -6057,7 +6058,8 @@
       "proposalRateMax": 217600,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 2\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 営業・テレアポ経験1年以上、勤怠管理\nメモ: 単価低いから配信なし"
+      "background": "案件No: 2\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 営業・テレアポ経験1年以上、勤怠管理\nメモ: 単価低いから配信なし",
+      "caseNo": "2"
     },
     {
       "id": "j_seed_1778512212336_orb2",
@@ -6086,7 +6088,8 @@
       "proposalRateMax": 179200,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 3\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 営業経験半年以上（未経験相談可）\nメモ: 単価低いから配信なし"
+      "background": "案件No: 3\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 営業経験半年以上（未経験相談可）\nメモ: 単価低いから配信なし",
+      "caseNo": "3"
     },
     {
       "id": "j_seed_1778512212337_v8yf",
@@ -6115,7 +6118,8 @@
       "proposalRateMax": 256000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 4\n受領: Slack\n受注: 2026/3/6\n就業: 出社（福岡）\n必須: IS・営業経験1年以上、女性優遇、30代まで\nメモ: 単価低いから配信なし"
+      "background": "案件No: 4\n受領: Slack\n受注: 2026/3/6\n就業: 出社（福岡）\n必須: IS・営業経験1年以上、女性優遇、30代まで\nメモ: 単価低いから配信なし",
+      "caseNo": "4"
     },
     {
       "id": "j_seed_1778512212338_2xye",
@@ -6144,7 +6148,8 @@
       "proposalRateMax": 230400,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 5\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: ISの実務経験2年以上、自走力・PDCA\nメモ: 単価低いから配信なし"
+      "background": "案件No: 5\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: ISの実務経験2年以上、自走力・PDCA\nメモ: 単価低いから配信なし",
+      "caseNo": "5"
     },
     {
       "id": "j_seed_1778512212339_ob9g",
@@ -6173,7 +6178,8 @@
       "proposalRateMax": 268800,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 6\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: toBのIS経験3年以上\nメモ: 単価低いから配信なし"
+      "background": "案件No: 6\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: toBのIS経験3年以上\nメモ: 単価低いから配信なし",
+      "caseNo": "6"
     },
     {
       "id": "j_seed_1778512212340_40ms",
@@ -6202,7 +6208,8 @@
       "proposalRateMax": 1360,
       "proposalRateMin": null,
       "proposalRateMode": "hourly",
-      "background": "案件No: 7\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 学生・副業可、スポット稼働対応\nメモ: 単価低いから配信なし"
+      "background": "案件No: 7\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 学生・副業可、スポット稼働対応\nメモ: 単価低いから配信なし",
+      "caseNo": "7"
     },
     {
       "id": "j_seed_1778512212341_lxdg",
@@ -6231,7 +6238,8 @@
       "proposalRateMax": 144000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 8\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 法人営業1年以上、BtoB架電経験1年以上\nメモ: 単価低いから配信なし"
+      "background": "案件No: 8\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 法人営業1年以上、BtoB架電経験1年以上\nメモ: 単価低いから配信なし",
+      "caseNo": "8"
     },
     {
       "id": "j_seed_1778512212342_p417",
@@ -6260,7 +6268,8 @@
       "proposalRateMax": 230400,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 9\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 法人営業1年以上、BtoB架電経験1年以上\nメモ: 単価低いから配信なし"
+      "background": "案件No: 9\n受領: Slack\n受注: 2026/3/6\n就業: フルリモート\n必須: 法人営業1年以上、BtoB架電経験1年以上\nメモ: 単価低いから配信なし",
+      "caseNo": "9"
     },
     {
       "id": "j_seed_1778512212343_ki5i",
@@ -6289,7 +6298,8 @@
       "proposalRateMax": 400000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 10\n受領: Slack\n受注: 2026/3/6\n就業: 出社（二子玉川）\n必須: 社会人経験3年以上、社外関係者とのビジネス推進経験、数値管理経験\nメモ: 開始日：4/1"
+      "background": "案件No: 10\n受領: Slack\n受注: 2026/3/6\n就業: 出社（二子玉川）\n必須: 社会人経験3年以上、社外関係者とのビジネス推進経験、数値管理経験\nメモ: 開始日：4/1",
+      "caseNo": "10"
     },
     {
       "id": "j_seed_1778512212344_bew3",
@@ -6318,7 +6328,8 @@
       "proposalRateMax": 480000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 11\n受領: Slack\n受注: 2026/3/6\n配信: 2026/03/19\n就業: 出社（二子玉川）\n必須: サービス企画・要件定義経験、保守運用経験、数値管理経験"
+      "background": "案件No: 11\n受領: Slack\n受注: 2026/3/6\n配信: 2026/03/19\n就業: 出社（二子玉川）\n必須: サービス企画・要件定義経験、保守運用経験、数値管理経験",
+      "caseNo": "11"
     },
     {
       "id": "j_seed_1778512212345_82nw",
@@ -6347,7 +6358,8 @@
       "proposalRateMax": 400000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 12\n受領: Slack\n受注: 2026/3/6\n就業: 出社（大崎）\n必須: 法人営業経験、PCスキル\nメモ: 開始日：4/1"
+      "background": "案件No: 12\n受領: Slack\n受注: 2026/3/6\n就業: 出社（大崎）\n必須: 法人営業経験、PCスキル\nメモ: 開始日：4/1",
+      "caseNo": "12"
     },
     {
       "id": "j_seed_1778512212346_id4g",
@@ -6376,7 +6388,8 @@
       "proposalRateMax": 294400,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 13\n受領: Slack\n受注: 2026/3/6\n就業: 出社（大崎）\n必須: SFDCの利用経験、BtoB IS経験1年以上\nメモ: 単価低いから配信なし"
+      "background": "案件No: 13\n受領: Slack\n受注: 2026/3/6\n就業: 出社（大崎）\n必須: SFDCの利用経験、BtoB IS経験1年以上\nメモ: 単価低いから配信なし",
+      "caseNo": "13"
     },
     {
       "id": "j_seed_1778512212347_y10a",
@@ -6405,7 +6418,8 @@
       "proposalRateMax": null,
       "proposalRateMin": null,
       "proposalRateMode": null,
-      "background": "案件No: 14\n受領: 松浦さん経由\n受注: 2026/3/16\n必須: 営業人材アサイン型一気通貫支援（クロージングまで）"
+      "background": "案件No: 14\n受領: 松浦さん経由\n受注: 2026/3/16\n必須: 営業人材アサイン型一気通貫支援（クロージングまで）",
+      "caseNo": "14"
     },
     {
       "id": "j_seed_1778512212348_owl5",
@@ -6434,7 +6448,8 @@
       "proposalRateMax": null,
       "proposalRateMin": null,
       "proposalRateMode": null,
-      "background": "案件No: 15\n受領: 松浦さん経由\n受注: 2026/3/16\n就業: フルリモート\n必須: Salesforce導入支援・定着支援経験、DX推進知見"
+      "background": "案件No: 15\n受領: 松浦さん経由\n受注: 2026/3/16\n就業: フルリモート\n必須: Salesforce導入支援・定着支援経験、DX推進知見",
+      "caseNo": "15"
     },
     {
       "id": "j_seed_1778512212350_xni7",
@@ -6463,7 +6478,8 @@
       "proposalRateMax": 336000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 17\n受領: Slack\n受注: 2026/3/19\n配信: 2026/03/19\n就業: フルリモート\n必須: SaaS商材の営業経験"
+      "background": "案件No: 17\n受領: Slack\n受注: 2026/3/19\n配信: 2026/03/19\n就業: フルリモート\n必須: SaaS商材の営業経験",
+      "caseNo": "17"
     },
     {
       "id": "j_seed_1778512212351_8830",
@@ -6492,7 +6508,8 @@
       "proposalRateMax": 320000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 18\n受領: Slack\n受注: 2026/3/19\n就業: フルリモート\n必須: SaaS商材のIS/FS経験（want）、SF活用経験（want）"
+      "background": "案件No: 18\n受領: Slack\n受注: 2026/3/19\n就業: フルリモート\n必須: SaaS商材のIS/FS経験（want）、SF活用経験（want）",
+      "caseNo": "18"
     },
     {
       "id": "j_seed_1778512212352_1nsm",
@@ -6521,7 +6538,8 @@
       "proposalRateMax": 272000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 19\n受領: LINE\n受注: 2026/3/13\n就業: ハイブリッド（渋谷）\n必須: 法人営業経験2年以上"
+      "background": "案件No: 19\n受領: LINE\n受注: 2026/3/13\n就業: ハイブリッド（渋谷）\n必須: 法人営業経験2年以上",
+      "caseNo": "19"
     },
     {
       "id": "j_seed_1778512212353_r37r",
@@ -6550,7 +6568,8 @@
       "proposalRateMax": 64000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 20\n受領: Slack\n受注: 2026/2/27\n就業: 出社（恵比寿）\n必須: 臨機応変な対応力、数値へのコミット、素直さ"
+      "background": "案件No: 20\n受領: Slack\n受注: 2026/2/27\n就業: 出社（恵比寿）\n必須: 臨機応変な対応力、数値へのコミット、素直さ",
+      "caseNo": "20"
     },
     {
       "id": "j_seed_1778512212354_2tfl",
@@ -6579,7 +6598,8 @@
       "proposalRateMax": 40960,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 21\n受領: Slack\n受注: 2026/2/27\n就業: フルリモート\n必須: 臨機応変な対応力、数値へのコミット、HR知見（want）"
+      "background": "案件No: 21\n受領: Slack\n受注: 2026/2/27\n就業: フルリモート\n必須: 臨機応変な対応力、数値へのコミット、HR知見（want）",
+      "caseNo": "21"
     },
     {
       "id": "j_seed_1778512212355_0os8",
@@ -6608,7 +6628,8 @@
       "proposalRateMax": 230400,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 22\n受領: Slack\n受注: 2026/2/10\n就業: 出社（大崎）\n必須: SFDCの利用経験、BtoB IS経験1年以上"
+      "background": "案件No: 22\n受領: Slack\n受注: 2026/2/10\n就業: 出社（大崎）\n必須: SFDCの利用経験、BtoB IS経験1年以上",
+      "caseNo": "22"
     },
     {
       "id": "j_seed_1778512212356_ata1",
@@ -6637,7 +6658,8 @@
       "proposalRateMax": 224000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 23\n受領: Slack\n受注: 2026/2/16\n就業: 出社（飯田橋）\n必須: 法人営業経験2年以上、責任者経験"
+      "background": "案件No: 23\n受領: Slack\n受注: 2026/2/16\n就業: 出社（飯田橋）\n必須: 法人営業経験2年以上、責任者経験",
+      "caseNo": "23"
     },
     {
       "id": "j_seed_1778512212357_4t9z",
@@ -6666,7 +6688,8 @@
       "proposalRateMax": 243200,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 24\n受領: Slack\n受注: 2026/2/16\n就業: 出社（四谷）\n必須: IS実務経験（完全未経験不可）、高回数アウトバウンド自走"
+      "background": "案件No: 24\n受領: Slack\n受注: 2026/2/16\n就業: 出社（四谷）\n必須: IS実務経験（完全未経験不可）、高回数アウトバウンド自走",
+      "caseNo": "24"
     },
     {
       "id": "j_seed_1778512212358_e0gs",
@@ -6695,7 +6718,8 @@
       "proposalRateMax": 204800,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 25\n受領: Slack\n受注: 2026/2/16\n就業: フルリモート\n必須: 医療製造への知見・開拓経験、IS経験2年以上、新規開拓経験"
+      "background": "案件No: 25\n受領: Slack\n受注: 2026/2/16\n就業: フルリモート\n必須: 医療製造への知見・開拓経験、IS経験2年以上、新規開拓経験",
+      "caseNo": "25"
     },
     {
       "id": "j_seed_1778512212359_3kry",
@@ -6724,7 +6748,8 @@
       "proposalRateMax": 243200,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 26\n受領: Slack\n受注: 2026/2/16\n就業: ハイブリッド（京橋）\n必須: 営業経験、20〜45歳、出社対応可"
+      "background": "案件No: 26\n受領: Slack\n受注: 2026/2/16\n就業: ハイブリッド（京橋）\n必須: 営業経験、20〜45歳、出社対応可",
+      "caseNo": "26"
     },
     {
       "id": "j_seed_1778512212360_7no5",
@@ -6753,7 +6778,8 @@
       "proposalRateMax": 192000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 27\n受領: Slack\n受注: 2025/11/25\n就業: ハイブリッド（京橋）\n必須: DTPディレクション経験3年以上（want）、タスク管理能力"
+      "background": "案件No: 27\n受領: Slack\n受注: 2025/11/25\n就業: ハイブリッド（京橋）\n必須: DTPディレクション経験3年以上（want）、タスク管理能力",
+      "caseNo": "27"
     },
     {
       "id": "j_seed_1778512212361_c6ay",
@@ -6782,7 +6808,8 @@
       "proposalRateMax": 243200,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 28\n受領: Slack\n受注: 2025/12/3\n就業: フルリモート\n必須: SaaS/IT無形商材のFS経験2年以上、SDR経験"
+      "background": "案件No: 28\n受領: Slack\n受注: 2025/12/3\n就業: フルリモート\n必須: SaaS/IT無形商材のFS経験2年以上、SDR経験",
+      "caseNo": "28"
     },
     {
       "id": "j_seed_1778512212362_qldf",
@@ -6811,7 +6838,8 @@
       "proposalRateMax": 264000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 29\n受領: Slack\n受注: 2025/11/13\n就業: フルリモート\n必須: SaaS営業経験、BtoB営業経験"
+      "background": "案件No: 29\n受領: Slack\n受注: 2025/11/13\n就業: フルリモート\n必須: SaaS営業経験、BtoB営業経験",
+      "caseNo": "29"
     },
     {
       "id": "j_seed_1778512212363_1aq0",
@@ -6840,7 +6868,8 @@
       "proposalRateMax": 192000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 30\n受領: Slack\n受注: 2025/6/10\n就業: ハイブリッド（京橋）\n必須: 事務職経験1年以上、基本PCスキル、電話・メール対応経験"
+      "background": "案件No: 30\n受領: Slack\n受注: 2025/6/10\n就業: ハイブリッド（京橋）\n必須: 事務職経験1年以上、基本PCスキル、電話・メール対応経験",
+      "caseNo": "30"
     },
     {
       "id": "j_seed_1778512212364_9tgn",
@@ -6869,7 +6898,8 @@
       "proposalRateMax": 384000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 31\n受領: Slack\n受注: 2025/11/6\n就業: 出社（三田）\n必須: IS経験2年以上、SaaSまたはAI系プロダクト営業経験"
+      "background": "案件No: 31\n受領: Slack\n受注: 2025/11/6\n就業: 出社（三田）\n必須: IS経験2年以上、SaaSまたはAI系プロダクト営業経験",
+      "caseNo": "31"
     },
     {
       "id": "j_seed_1778512212365_ioca",
@@ -6898,7 +6928,8 @@
       "proposalRateMax": 224000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 32\n受領: Slack\n受注: 2026/2/16\n就業: 出社（飯田橋）\n必須: アポインター経験、保険・医療業務経験（want）、ホスピタリティ"
+      "background": "案件No: 32\n受領: Slack\n受注: 2026/2/16\n就業: 出社（飯田橋）\n必須: アポインター経験、保険・医療業務経験（want）、ホスピタリティ",
+      "caseNo": "32"
     },
     {
       "id": "j_seed_1778512212366_uf2j",
@@ -6927,7 +6958,8 @@
       "proposalRateMax": 320000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 33\n受領: Slack\n受注: 2026/3/27\n就業: 出社（南九州・山陰・東海）\n必須: 法人FSの経験、自動車運転経験、訪問・長距離運転対応、クロージング自走"
+      "background": "案件No: 33\n受領: Slack\n受注: 2026/3/27\n就業: 出社（南九州・山陰・東海）\n必須: 法人FSの経験、自動車運転経験、訪問・長距離運転対応、クロージング自走",
+      "caseNo": "33"
     },
     {
       "id": "j_seed_1778512212367_8ouy",
@@ -6956,7 +6988,8 @@
       "proposalRateMax": 307200,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 34\n受領: Slack\n受注: 2026/3/27\n就業: ハイブリッド（リモート可）\n必須: 法人営業経験2年以上、新規開拓経験、オンライン・オフライン商談経験"
+      "background": "案件No: 34\n受領: Slack\n受注: 2026/3/27\n就業: ハイブリッド（リモート可）\n必須: 法人営業経験2年以上、新規開拓経験、オンライン・オフライン商談経験",
+      "caseNo": "34"
     },
     {
       "id": "j_seed_1778512212368_p9j7",
@@ -6985,7 +7018,8 @@
       "proposalRateMax": 360000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 35\n受領: Slack\n受注: 2026/3/27\n就業: 出社（渋谷）\n必須: 法人営業経験2年以上、商談〜クロージング自走"
+      "background": "案件No: 35\n受領: Slack\n受注: 2026/3/27\n就業: 出社（渋谷）\n必須: 法人営業経験2年以上、商談〜クロージング自走",
+      "caseNo": "35"
     },
     {
       "id": "j_seed_1778512212369_8s15",
@@ -7014,7 +7048,8 @@
       "proposalRateMax": 240000,
       "proposalRateMin": null,
       "proposalRateMode": "monthly",
-      "background": "案件No: 36\n受領: Slack\n受注: 2026/3/27\n就業: 出社（渋谷）\n必須: 新規開拓営業経験1年以上、大学卒業以上（緩和可）"
+      "background": "案件No: 36\n受領: Slack\n受注: 2026/3/27\n就業: 出社（渋谷）\n必須: 新規開拓営業経験1年以上、大学卒業以上（緩和可）",
+      "caseNo": "36"
     },
     {
       "id": "j_seed_1778512308157_yhfy",
