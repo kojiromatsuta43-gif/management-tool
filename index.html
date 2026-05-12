@@ -4242,20 +4242,29 @@
     if (customCandTagMaster.length > 0) {
       const isExpanded = expandedCandTagGroups.has('__custom__');
       const selInCustom = customCandTagMaster.filter(t => sel.has(t)).length;
+      const isEditing = expandedCandTagGroups.has('__custom_edit__');
       html += `<div style="margin-bottom: 6px; border: 1px solid var(--border); background: var(--paper);">
         <div onclick="toggleCandTagGroup('__custom__')" style="cursor: pointer; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; background: ${selInCustom > 0 ? 'var(--paper-soft)' : 'var(--paper)'}; user-select: none;">
           <span style="font-size: 12px; font-weight: 500; color: var(--ink);">★ 追加した商材・タグ${selInCustom > 0 ? ` <span style="display: inline-block; padding: 1px 7px; margin-left: 4px; background: var(--accent); color: white; font-size: 10px; border-radius: 8px; font-weight: 400;">${selInCustom}</span>` : ''} <span style="font-size: 10px; color: var(--ink-muted); font-weight: 400; margin-left: 4px;">(${customCandTagMaster.length}件)</span></span>
           <span style="font-size: 12px; color: var(--ink-muted);">${isExpanded ? '⌃' : '⌄'}</span>
         </div>
-        ${isExpanded ? `<div style="padding: 8px 12px; display: flex; gap: 6px; flex-wrap: wrap; border-top: 1px dashed var(--border);">
-          ${customCandTagMaster.map(t => {
-            const isSel = sel.has(t);
-            return `<label style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: ${isSel ? 'var(--accent-soft)' : 'var(--paper-soft)'}; border: 1px solid ${isSel ? 'var(--accent)' : 'var(--border)'}; cursor: pointer; font-size: 11px; color: ${isSel ? 'var(--accent)' : 'var(--ink)'};">
-              <input type="checkbox" value="${escapeAttr(t)}" ${isSel ? 'checked' : ''} onchange="toggleCandTag(this)" style="margin: 0;" />
-              ${escapeHtml(t)}
-              <button type="button" onclick="event.preventDefault(); event.stopPropagation(); confirmRemoveCustomTag('${escapeAttr(t)}');" title="マスタから削除" style="background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 0 2px; font-size: 11px; line-height: 1;">×</button>
-            </label>`;
-          }).join('')}
+        ${isExpanded ? `<div style="padding: 8px 12px; border-top: 1px dashed var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 10px; color: var(--ink-muted);">${isEditing ? 'タグをタップでマスタから削除' : 'チェックで選択'}</span>
+            <button type="button" onclick="event.preventDefault(); event.stopPropagation(); toggleCandTagGroup('__custom_edit__');" style="background: ${isEditing ? 'var(--rank-c-fg)' : 'var(--paper)'}; color: ${isEditing ? 'white' : 'var(--ink-muted)'}; border: 1px solid ${isEditing ? 'var(--rank-c-fg)' : 'var(--border-strong)'}; padding: 3px 10px; font-size: 11px; cursor: pointer; font-family: inherit;">${isEditing ? '✓ 完了' : '🗑 削除モード'}</button>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            ${customCandTagMaster.map(t => {
+              const isSel = sel.has(t);
+              if (isEditing) {
+                return `<button type="button" onclick="confirmRemoveCustomTag('${escapeAttr(t)}');" style="padding: 5px 10px; background: var(--rank-c-bg); border: 1px solid var(--rank-c-border); color: var(--rank-c-fg); font-size: 11px; cursor: pointer; font-family: inherit;">${escapeHtml(t)} <span style="color: var(--rank-c-fg); margin-left: 4px;">×</span></button>`;
+              }
+              return `<label style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: ${isSel ? 'var(--accent-soft)' : 'var(--paper-soft)'}; border: 1px solid ${isSel ? 'var(--accent)' : 'var(--border)'}; cursor: pointer; font-size: 11px; color: ${isSel ? 'var(--accent)' : 'var(--ink)'};">
+                <input type="checkbox" value="${escapeAttr(t)}" ${isSel ? 'checked' : ''} onchange="toggleCandTag(this)" style="margin: 0;" />
+                ${escapeHtml(t)}
+              </label>`;
+            }).join('')}
+          </div>
         </div>` : ''}
       </div>`;
     }
