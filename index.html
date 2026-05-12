@@ -2962,6 +2962,23 @@
                 <input type="text" id="f-partnerCompany" list="partner-list" placeholder="または直接入力 (過去の入力から予測表示)" />
                 <button type="button" id="add-partner-btn" class="btn-ghost" style="padding: 8px 14px; font-size: 12px; white-space: nowrap;">+ マスタに追加</button>
               </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; background: var(--paper-soft); border: 1px dashed var(--border-strong); margin-top: 4px;">
+                <div>
+                  <label style="font-size: 10px; color: var(--ink-muted); display: block; margin-bottom: 2px;">パートナーフィー (時給)</label>
+                  <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper);">
+                    <input type="number" id="f-partnerFeeHourly" min="0" step="50" placeholder="例: 200" style="flex:1; border: none; padding: 6px 10px; font-size: 13px; text-align: right;" oninput="updateConversion('desired'); updateConversion('proposal');" />
+                    <span style="padding: 6px 8px; font-size: 10px; color: var(--ink-muted); align-self: center;">円/時</span>
+                  </div>
+                </div>
+                <div>
+                  <label style="font-size: 10px; color: var(--ink-muted); display: block; margin-bottom: 2px;">パートナーフィー率</label>
+                  <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper);">
+                    <input type="number" id="f-partnerFeeRate" min="0" max="100" step="1" placeholder="例: 10" style="flex:1; border: none; padding: 6px 10px; font-size: 13px; text-align: right;" oninput="updateConversion('desired'); updateConversion('proposal');" />
+                    <span style="padding: 6px 8px; font-size: 10px; color: var(--ink-muted); align-self: center;">%</span>
+                  </div>
+                </div>
+                <div style="grid-column: 1 / -1; font-size: 10px; color: var(--ink-faint);">どちらか一方でOK。両方記入時は固定額が優先。例: 時給200円 or 提案単価の10%</div>
+              </div>
             </div>
           </div>
         </div>
@@ -3202,6 +3219,7 @@
     <div class="modal-footer">
       <div class="modal-footer-left">
         <button class="btn-ghost" id="detail-pdf-btn" title="PDF出力">⬇ PDF出力</button>
+        <button class="btn-ghost" id="detail-promote-btn" title="稼働人材へ昇格" style="border-color: var(--accent); color: var(--accent);">▶ 稼働人材へ昇格</button>
       </div>
       <div class="modal-footer-right">
         <button class="btn-ghost" onclick="closeDetail()">閉じる</button>
@@ -4566,12 +4584,39 @@
     if (desiredRate && c.proposalRate) {
       const desiredMonthly = rateToMonthlyYen(desiredRate, desiredMode || 'hourly', hours);
       const proposalMonthly = rateToMonthlyYen(c.proposalRate, c.proposalRateMode || 'hourly', hours);
-      const margin = proposalMonthly - desiredMonthly;
-      const marginRate = proposalMonthly ? (margin / proposalMonthly * 100) : 0;
+      const grossMargin = proposalMonthly - desiredMonthly;
+      // パートナーフィー (時給ベース or %)
+      let partnerFee = 0;
+      let feeDetail = '';
+      if (c.source === 'partner') {
+        if (c.partnerFeeHourly) {
+          partnerFee = Number(c.partnerFeeHourly) * hours;
+          feeDetail = `${c.partnerFeeHourly}円/h × ${hours}h`;
+        } else if (c.partnerFeeRate) {
+          partnerFee = Math.round(proposalMonthly * Number(c.partnerFeeRate) / 100);
+          feeDetail = `提案単価の ${c.partnerFeeRate}%`;
+        }
+      }
+      const netMargin = grossMargin - partnerFee;
+      const marginRate = proposalMonthly ? (netMargin / proposalMonthly * 100) : 0;
       const desiredHourly = rateToHourly(desiredRate, desiredMode || 'hourly', hours);
       const proposalHourly = rateToHourly(c.proposalRate, c.proposalRateMode || 'hourly', hours);
-      const marginHourly = proposalHourly - desiredHourly;
-      marginBlock = `<div class="detail-rate-margin"><span>マージン</span><span><span class="margin-amount">${formatMan(margin)}/月</span> <span style="color: var(--ink-muted); font-size: 11px;">(${formatYen(marginHourly)}/時 / ${marginRate.toFixed(1)}%)</span></span></div>`;
+      const grossMarginHourly = proposalHourly - desiredHourly;
+      const partnerFeeHourly = hours ? Math.round(partnerFee / hours) : 0;
+      const netMarginHourly = grossMarginHourly - partnerFeeHourly;
+      if (partnerFee > 0) {
+        marginBlock = `<div class="detail-rate-margin">
+          <span>粗マージン</span><span><span style="color: var(--ink-muted);">${formatMan(grossMargin)}/月</span> <span style="color: var(--ink-faint); font-size: 11px;">(${formatYen(grossMarginHourly)}/時)</span></span>
+        </div>
+        <div class="detail-rate-margin" style="background: #FFF3E0; border-color: #FFB870;">
+          <span style="color: #8B5A00;">パートナーフィー</span><span><span style="color: #8B5A00; font-family: 'Shippori Mincho'; font-weight: 600;">-${formatMan(partnerFee)}/月</span> <span style="color: var(--ink-faint); font-size: 11px;">(${feeDetail})</span></span>
+        </div>
+        <div class="detail-rate-margin" style="background: var(--accent-soft); border-color: var(--accent);">
+          <span><b>純マージン (パートナー控除後)</b></span><span><span class="margin-amount">${formatMan(netMargin)}/月</span> <span style="color: var(--ink-muted); font-size: 11px;">(${formatYen(netMarginHourly)}/時 / ${marginRate.toFixed(1)}%)</span></span>
+        </div>`;
+      } else {
+        marginBlock = `<div class="detail-rate-margin"><span>マージン</span><span><span class="margin-amount">${formatMan(grossMargin)}/月</span> <span style="color: var(--ink-muted); font-size: 11px;">(${formatYen(grossMarginHourly)}/時 / ${(proposalMonthly ? grossMargin/proposalMonthly*100 : 0).toFixed(1)}%)</span></span></div>`;
+      }
     }
     return `<div class="detail-section"><h3>単価</h3><div class="detail-rates">${rateBlock(desiredRate, desiredMode || 'hourly', desiredMin, false)}${rateBlock(c.proposalRate, c.proposalRateMode || 'hourly', null, true)}${marginBlock}</div></div>`;
   }
@@ -4591,6 +4636,56 @@
     container.innerHTML = `<div class="card-grid">${filtered.map(renderCard).join('')}</div>`;
     if (typeof updateTabCounts === 'function') updateTabCounts();
     if (typeof refreshMatchTarget === 'function') refreshMatchTarget();
+  }
+
+  // ============ Promote Candidate → Assignment ============
+  async function promoteCandidateToAssignment(candId) {
+    const c = candidates.find(x => x.id === candId);
+    if (!c) return;
+    if (!confirm(`「${c.name}」を稼働人材として登録します。\n候補者ステータスは「稼働中」に変わり、稼働人材タブに新規 assignment が作成されます。続行しますか？`)) return;
+
+    // Update candidate status
+    c.status = 'active';
+    c.updatedAt = Date.now();
+    await saveToStorage(c);
+
+    closeDetail();
+
+    // Open assignment modal with prefilled values
+    openAssignmentModal(null);
+    setTimeout(() => {
+      const candSel = document.getElementById('af-candId');
+      if (candSel) { candSel.value = candId; candSel.dispatchEvent(new Event('change')); }
+      // パートナー情報引き継ぎ
+      if (c.source === 'partner' && c.partnerCompany) {
+        const sourceOpt = document.querySelector('#assignment-modal .toggle-group[data-afield="source"] .toggle-option[data-value="partner"]');
+        if (sourceOpt) sourceOpt.click();
+        document.getElementById('af-partnerCompany').value = c.partnerCompany;
+      } else if (c.source === 'in-house') {
+        const sourceOpt = document.querySelector('#assignment-modal .toggle-group[data-afield="source"] .toggle-option[data-value="in-house"]');
+        if (sourceOpt) sourceOpt.click();
+      }
+      // 単価引き継ぎ: 提案単価をmonthlyRevenue、希望単価+パートナーフィーをmonthlyCostに
+      if (c.proposalRate || c.desiredRate) {
+        const hours = c.workingHours || 160;
+        const propMonthly = c.proposalRate ? rateToMonthlyYen(c.proposalRate, c.proposalRateMode || 'hourly', hours) : 0;
+        const desiredMonthly = c.desiredRate ? rateToMonthlyYen(c.desiredRate, c.desiredRateMode || 'hourly', hours) : 0;
+        let partnerFee = 0;
+        if (c.source === 'partner') {
+          if (c.partnerFeeHourly) partnerFee = Number(c.partnerFeeHourly) * hours;
+          else if (c.partnerFeeRate) partnerFee = Math.round(propMonthly * Number(c.partnerFeeRate) / 100);
+        }
+        // monthly mode pre-fill
+        const modeMonthlyOpt = document.querySelector('#assignment-modal .toggle-group[data-afield="rateMode"] .toggle-option[data-value="monthly"]');
+        if (modeMonthlyOpt) modeMonthlyOpt.click();
+        if (propMonthly) document.getElementById('af-monthlyRevenue').value = propMonthly;
+        if (desiredMonthly || partnerFee) document.getElementById('af-monthlyCost').value = desiredMonthly + partnerFee;
+        document.getElementById('af-monthlyHours').value = hours;
+        updateAssignmentMarginDisplay();
+      }
+      showToast('単価情報を引き継いで稼働人材を登録してください');
+    }, 100);
+    render();  // refresh candidate list
   }
 
   // ============ Claude API (AI 自動入力) ============
@@ -5238,6 +5333,8 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           : (c.notes || c.rawMemo || '');
         document.getElementById('f-notes').value = combinedNotes;
         renderCandTagsGrid(c.tags || []);
+        document.getElementById('f-partnerFeeHourly').value = c.partnerFeeHourly || '';
+        document.getElementById('f-partnerFeeRate').value = c.partnerFeeRate || '';
         document.getElementById('f-partnerCompany').value = c.partnerCompany || '';
         const partnerSel = document.getElementById('f-partnerSelect');
         if (partnerSel) partnerSel.value = (c.partnerCompany && partners.includes(c.partnerCompany)) ? c.partnerCompany : '';
@@ -5503,6 +5600,8 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       notes: document.getElementById('f-notes').value.trim() || null,
       tags: readSelectedCandTags(),
       services: readServicesFromForm(),
+      partnerFeeHourly: source === 'partner' ? (parseFloat(document.getElementById('f-partnerFeeHourly').value) || null) : null,
+      partnerFeeRate: source === 'partner' ? (parseFloat(document.getElementById('f-partnerFeeRate').value) || null) : null,
     };
     const ok = await saveToStorage(c);
     if (ok) {
@@ -5589,6 +5688,12 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     if (c.notes) html += `<div class="detail-section"><h3>推奨案件・所感</h3><div class="notes-block">${escapeHtml(c.notes)}</div></div>`;
     document.getElementById('detail-body').innerHTML = html;
     document.getElementById('detail-edit-btn').onclick = () => { closeDetail(); openModal(id); };
+    const promoteBtn = document.getElementById('detail-promote-btn');
+    if (promoteBtn) {
+      // 稼働中ステータスなら非表示、それ以外は表示
+      promoteBtn.style.display = c.status === 'active' ? 'none' : '';
+      promoteBtn.onclick = () => promoteCandidateToAssignment(id);
+    }
     document.getElementById('detail-pdf-btn').onclick = () => exportPDF(id);
     document.getElementById('detail-modal').classList.add('active');
   }
