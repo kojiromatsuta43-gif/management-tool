@@ -3576,6 +3576,89 @@
   </div>
 </div>
 
+<!-- ===== Cost Modal (原価入力) ===== -->
+<div class="modal-overlay" id="cost-modal">
+  <div class="modal" style="max-width: 580px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-mark"></span><span id="cost-modal-title">原価明細の登録</span>
+      </div>
+      <button class="modal-close" onclick="closeCostModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cf-id" />
+      <input type="hidden" id="cf-assignmentId" />
+      <div id="cf-context" style="margin-bottom: 16px; padding: 12px 14px; background: var(--paper-soft); border: 1px solid var(--border); font-size: 12px;"></div>
+
+      <div class="form-section">
+        <div class="form-section-title">原価情報</div>
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 11px; color: var(--ink-muted); display: block; margin-bottom: 6px;">種別 <span style="color: var(--accent);">*</span></label>
+          <div class="toggle-group" data-cfield="category" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+            <div class="toggle-option active" data-value="labor">稼働料</div>
+            <div class="toggle-option" data-value="referral">紹介手数料</div>
+            <div class="toggle-option" data-value="transport">交通費</div>
+            <div class="toggle-option" data-value="other">その他</div>
+          </div>
+        </div>
+        <div class="form-grid form-grid-3">
+          <div class="form-field">
+            <label>対象月 <span style="color: var(--accent);">*</span></label>
+            <input type="month" id="cf-month" />
+          </div>
+          <div class="form-field">
+            <label>支払先 <span style="color: var(--accent);">*</span></label>
+            <input type="text" id="cf-payee" placeholder="人材名 or パートナー企業名" />
+          </div>
+          <div class="form-field">
+            <label>金額 (税抜) <span style="color: var(--accent);">*</span></label>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--border-strong); background: var(--paper-soft);">
+              <input type="number" id="cf-amountExclTax" min="0" step="100" placeholder="200000" style="flex:1; border: none; padding: 8px 12px; background: transparent; font-size: 14px; text-align: right;" oninput="updateCostAmountIncl()" />
+              <span style="padding: 8px 10px; font-size: 11px; color: var(--ink-muted); align-self: center;">円</span>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>税率</label>
+            <select id="cf-taxRate" onchange="updateCostAmountIncl()">
+              <option value="10">10%</option>
+              <option value="8">8%</option>
+              <option value="0">0%</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>金額 (税込)</label>
+            <input type="text" id="cf-amountInclTax" readonly style="background: var(--paper); color: var(--ink-muted); text-align: right;" />
+          </div>
+          <div class="form-field">
+            <label>単価 (任意)</label>
+            <input type="number" id="cf-unitPrice" min="0" step="100" placeholder="例: 2000" />
+          </div>
+          <div class="form-field">
+            <label>件数/時間 (任意)</label>
+            <input type="number" id="cf-quantity" min="0" step="0.5" placeholder="例: 100" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section" style="margin-bottom: 0;">
+        <div class="form-section-title">メモ</div>
+        <div class="form-field">
+          <textarea id="cf-notes" placeholder="特記事項" style="height: 80px; resize: none;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-left">
+        <button class="btn-danger" id="cf-delete-btn" onclick="confirmDeleteCost()" style="display:none;">削除</button>
+      </div>
+      <div class="modal-footer-right">
+        <button class="btn-ghost" onclick="closeCostModal()">キャンセル</button>
+        <button class="btn-primary" onclick="saveCost()" style="background: var(--primary);">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== Revenue Modal ===== -->
 <div class="modal-overlay" id="revenue-modal">
   <div class="modal" style="max-width: 600px;">
@@ -3593,11 +3676,21 @@
 
       <div class="form-section">
         <div class="form-section-title">売上情報</div>
-        <div style="margin-bottom: 12px;">
-          <label style="font-size: 11px; color: var(--ink-muted); display: block; margin-bottom: 6px;">単価モード</label>
-          <div class="toggle-group" data-rfield="rateMode" style="grid-template-columns: 1fr 1fr;">
-            <div class="toggle-option" data-value="monthly">月額固定</div>
-            <div class="toggle-option" data-value="hourly">時給 × 稼働時間</div>
+        <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 11px; color: var(--ink-muted); display: block; margin-bottom: 6px;">種別</label>
+            <div class="toggle-group" data-rfield="category" style="grid-template-columns: 1fr 1fr 1fr;">
+              <div class="toggle-option active" data-value="labor">稼働費</div>
+              <div class="toggle-option" data-value="transport">交通費</div>
+              <div class="toggle-option" data-value="other">その他</div>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 11px; color: var(--ink-muted); display: block; margin-bottom: 6px;">単価モード</label>
+            <div class="toggle-group" data-rfield="rateMode" style="grid-template-columns: 1fr 1fr;">
+              <div class="toggle-option" data-value="monthly">月額固定</div>
+              <div class="toggle-option" data-value="hourly">時給 × 稼働時間</div>
+            </div>
           </div>
         </div>
         <div class="form-grid form-grid-3">
@@ -7903,6 +7996,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
 
     // Load cost records
     costs = await loadCosts();
+    setupCostUI();
 
     // Auto-seed: 初回起動 (assignments がゼロ) なら スプシデータを自動取り込み
     try {
@@ -8407,7 +8501,8 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           ${revHtml}
           <div class="assignment-card-actions">
             <button class="icon-btn" onclick="event.stopPropagation(); openRevenueDetailModal('${a.id}')" title="売上一覧を表示">📊 売上一覧 (${revs.length})</button>
-            <button class="icon-btn" onclick="event.stopPropagation(); openRevenueModal(null, '${a.id}')" title="売上明細を追加">+ 売上追加</button>
+            <button class="icon-btn" onclick="event.stopPropagation(); openRevenueModal(null, '${a.id}')" title="売上明細を追加">+ 売上</button>
+            <button class="icon-btn" onclick="event.stopPropagation(); openCostModal(null, '${a.id}')" title="原価明細を追加" style="border-color: var(--ink-muted); color: var(--ink-muted);">+ 原価</button>
             <button class="icon-btn" onclick="event.stopPropagation(); openAssignmentModal('${a.id}')" title="編集">✎ 編集</button>
           </div>
         </div>
@@ -8528,7 +8623,135 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
   }
 
   function costCategoryLabel(cat) {
-    return { labor: '稼働費', transport: '交通費', referral: '紹介料', incentive: 'インセンティブ', fee: '手数料', other: 'その他' }[cat] || (cat || '—');
+    return { labor: '稼働料', transport: '交通費', referral: '紹介手数料', incentive: 'インセンティブ', fee: '手数料', other: 'その他' }[cat] || (cat || '—');
+  }
+
+  // ===== Cost Modal =====
+  let editingCostId = null;
+  let costContext = { assignmentId: null };
+  async function saveCostToStorage(c) {
+    try { await window.storage.set(`cst:${c.id}`, JSON.stringify(c), true); return true; }
+    catch (e) { showToast('保存に失敗しました', true); return false; }
+  }
+  async function deleteCostFromStorage(id) {
+    try { await window.storage.delete(`cst:${id}`, true); return true; }
+    catch (e) { return false; }
+  }
+  function updateCostAmountIncl() {
+    const amt = parseFloat(document.getElementById('cf-amountExclTax').value) || 0;
+    const taxRate = parseFloat(document.getElementById('cf-taxRate').value) || 0;
+    document.getElementById('cf-amountInclTax').value = amt ? Math.round(amt * (1 + taxRate / 100)).toLocaleString('ja-JP') + ' 円' : '—';
+  }
+  function openCostModal(costId, assignmentId) {
+    editingCostId = costId || null;
+    costContext.assignmentId = assignmentId || null;
+    const isEdit = !!costId;
+    document.getElementById('cost-modal-title').textContent = isEdit ? '原価明細の編集' : '原価明細の登録';
+    document.getElementById('cf-delete-btn').style.display = isEdit ? 'block' : 'none';
+
+    // Context
+    const asgn = isEdit ? (assignments.find(a => a.id === (costs.find(c => c.id === costId)?.assignmentId))) : (assignmentId ? assignments.find(a => a.id === assignmentId) : null);
+    if (asgn) {
+      const cand = findCandidateById(asgn.candId);
+      const job = findJobById(asgn.jobId);
+      document.getElementById('cf-context').innerHTML = `<b>${escapeHtml(cand?.name || '?')}</b>${job ? ` <span style="color: var(--primary);">/ ${escapeHtml(job.title || '')}</span>` : ''}${job?.client ? ` <span style="color: var(--ink-muted);">/ ${escapeHtml(job.client)}</span>` : ''}`;
+    } else {
+      document.getElementById('cf-context').innerHTML = '<span style="color: var(--ink-faint);">稼働情報なし</span>';
+    }
+    document.getElementById('cf-assignmentId').value = assignmentId || (isEdit ? (costs.find(c => c.id === costId)?.assignmentId || '') : '');
+
+    document.querySelectorAll('#cost-modal .toggle-group[data-cfield="category"] .toggle-option').forEach(o => o.classList.remove('active'));
+    if (isEdit) {
+      const c = costs.find(x => x.id === costId);
+      if (c) {
+        document.getElementById('cf-id').value = c.id;
+        document.getElementById('cf-month').value = c.month || '';
+        document.getElementById('cf-payee').value = c.payee || '';
+        document.getElementById('cf-amountExclTax').value = c.amountExclTax || '';
+        document.getElementById('cf-taxRate').value = c.taxRate != null ? c.taxRate : 10;
+        document.getElementById('cf-unitPrice').value = c.unitPrice || '';
+        document.getElementById('cf-quantity').value = c.quantity || '';
+        document.getElementById('cf-notes').value = c.notes || '';
+        const opt = document.querySelector(`#cost-modal .toggle-group[data-cfield="category"] .toggle-option[data-value="${c.category || 'labor'}"]`);
+        if (opt) opt.classList.add('active');
+      }
+    } else {
+      ['cf-id','cf-payee','cf-amountExclTax','cf-unitPrice','cf-quantity','cf-notes'].forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
+      document.getElementById('cf-month').value = currentMonth();
+      document.getElementById('cf-taxRate').value = 10;
+      const defaultOpt = document.querySelector('#cost-modal .toggle-group[data-cfield="category"] .toggle-option[data-value="labor"]');
+      if (defaultOpt) defaultOpt.classList.add('active');
+      // 支払先を候補者/パートナー名で初期化
+      if (asgn) {
+        const cand = findCandidateById(asgn.candId);
+        const partner = asgn.partnerCompany || cand?.partnerCompany;
+        document.getElementById('cf-payee').value = partner || cand?.name || '';
+      }
+    }
+    updateCostAmountIncl();
+    document.getElementById('cost-modal').classList.add('active');
+  }
+  function closeCostModal() {
+    document.getElementById('cost-modal').classList.remove('active');
+    editingCostId = null;
+    costContext.assignmentId = null;
+  }
+  async function saveCost() {
+    const month = document.getElementById('cf-month').value;
+    const payee = document.getElementById('cf-payee').value.trim();
+    const amt = parseFloat(document.getElementById('cf-amountExclTax').value) || 0;
+    if (!month) { showToast('対象月を入力してください', true); return; }
+    if (!payee) { showToast('支払先を入力してください', true); return; }
+    if (!amt) { showToast('金額を入力してください', true); return; }
+    const catActive = document.querySelector('#cost-modal .toggle-group[data-cfield="category"] .toggle-option.active');
+    const category = catActive ? catActive.dataset.value : 'labor';
+    const id = editingCostId || `cst_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const existing = editingCostId ? costs.find(c => c.id === id) : null;
+    const taxRate = parseFloat(document.getElementById('cf-taxRate').value) || 0;
+    const c = {
+      id,
+      createdAt: existing ? existing.createdAt : Date.now(),
+      updatedAt: Date.now(),
+      _v: 1,
+      assignmentId: document.getElementById('cf-assignmentId').value || null,
+      month,
+      category,
+      categoryLabel: costCategoryLabel(category),
+      payee,
+      amountExclTax: amt,
+      amountInclTax: Math.round(amt * (1 + taxRate / 100)),
+      taxRate,
+      unitPrice: parseFloat(document.getElementById('cf-unitPrice').value) || null,
+      quantity: parseFloat(document.getElementById('cf-quantity').value) || null,
+      notes: document.getElementById('cf-notes').value.trim() || null
+    };
+    const ok = await saveCostToStorage(c);
+    if (ok) {
+      const idx = costs.findIndex(x => x.id === id);
+      if (idx >= 0) costs[idx] = c; else costs.push(c);
+      renderAssignments();
+      closeCostModal();
+      showToast(editingCostId ? '更新しました' : '原価を登録しました');
+    }
+  }
+  async function confirmDeleteCost() {
+    if (!editingCostId) return;
+    if (!confirm('この原価明細を削除しますか？')) return;
+    const ok = await deleteCostFromStorage(editingCostId);
+    if (ok) {
+      costs = costs.filter(c => c.id !== editingCostId);
+      renderAssignments();
+      closeCostModal();
+      showToast('削除しました');
+    }
+  }
+  function setupCostUI() {
+    document.querySelectorAll('#cost-modal .toggle-group[data-cfield="category"] .toggle-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('#cost-modal .toggle-group[data-cfield="category"] .toggle-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+      });
+    });
   }
   function costCategoryColor(cat) {
     return { labor: 'var(--primary)', transport: '#5DA37A', referral: 'var(--accent)', incentive: 'var(--rank-s-fg)', fee: 'var(--ink-muted)', other: 'var(--ink-faint)' }[cat] || 'var(--ink-muted)';
@@ -8629,11 +8852,16 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     document.getElementById('rf-context').innerHTML = contextHtml;
     document.getElementById('rf-assignmentId').value = assignmentId || (isEdit ? (revenues.find(r => r.id === revenueId)?.assignmentId || '') : '');
 
+    // category toggle init
+    document.querySelectorAll('#revenue-modal .toggle-group[data-rfield="category"] .toggle-option').forEach(o => o.classList.remove('active'));
     if (isEdit) {
       const r = revenues.find(x => x.id === revenueId);
       if (r) {
         document.getElementById('rf-id').value = r.id;
         document.getElementById('rf-month').value = r.month || '';
+        const cat = r.category || 'labor';
+        const catOpt = document.querySelector(`#revenue-modal .toggle-group[data-rfield="category"] .toggle-option[data-value="${cat}"]`);
+        if (catOpt) catOpt.classList.add('active');
         document.getElementById('rf-unitPrice').value = r.unitPrice || '';
         document.getElementById('rf-quantity').value = r.quantity != null ? r.quantity : 1;
         document.getElementById('rf-taxRate').value = r.taxRate != null ? r.taxRate : 10;
@@ -8651,6 +8879,9 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     } else {
       ['rf-id','rf-invoicedAt','rf-dueDate','rf-paidAt','rf-invoiceTo','rf-invoiceTitle','rf-notes'].forEach(i => { document.getElementById(i).value = ''; });
       document.getElementById('rf-month').value = currentMonth();
+      // デフォルトカテゴリ: 稼働費
+      const defaultCat = document.querySelector('#revenue-modal .toggle-group[data-rfield="category"] .toggle-option[data-value="labor"]');
+      if (defaultCat) defaultCat.classList.add('active');
       document.getElementById('rf-taxRate').value = 10;
       document.getElementById('rf-confidence').value = 100;
       document.getElementById('rf-rank').value = '';
@@ -8689,6 +8920,8 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     const taxRate = parseFloat(document.getElementById('rf-taxRate').value) || 0;
     const amountExclTax = unitPrice * quantity;
     const amountInclTax = amountExclTax * (1 + taxRate / 100);
+    const catActive = document.querySelector('#revenue-modal .toggle-group[data-rfield="category"] .toggle-option.active');
+    const category = catActive ? catActive.dataset.value : 'labor';
     const r = {
       id,
       createdAt: existing ? existing.createdAt : Date.now(),
@@ -8696,6 +8929,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       _v: 1,
       assignmentId: assignmentId || null,
       month,
+      category,
       rateMode: readRevenueRateMode(),
       unitPrice,
       quantity,
@@ -8911,6 +9145,7 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
                 <th style="text-align: right;">件数</th>
                 <th style="text-align: right;">税抜</th>
                 <th style="text-align: right;">税込</th>
+                <th style="text-align: center; width: 50px;"></th>
               </tr>
             </thead>
             <tbody>
@@ -8919,12 +9154,15 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
                   <td style="font-family: 'Shippori Mincho', serif; font-weight: 500;">${escapeHtml(c.month || '')}</td>
                   <td><span style="display:inline-block; padding: 2px 8px; font-size: 10px; border: 1px solid ${costCategoryColor(c.category)}; color: ${costCategoryColor(c.category)};">${escapeHtml(costCategoryLabel(c.category))}</span></td>
                   <td>${escapeHtml(c.payee || '—')}</td>
-                  <td style="text-align: right;">¥${(c.unitPrice || 0).toLocaleString()}</td>
-                  <td style="text-align: right;">${c.quantity || 1}</td>
+                  <td style="text-align: right;">${c.unitPrice ? '¥' + c.unitPrice.toLocaleString() : '—'}</td>
+                  <td style="text-align: right;">${c.quantity || ''}</td>
                   <td style="text-align: right; font-weight: 500;">${formatMan(c.amountExclTax)}</td>
                   <td style="text-align: right; color: var(--ink-muted);">${formatMan(c.amountInclTax)}</td>
+                  <td style="text-align: center;">
+                    <button class="icon-btn" onclick="closeRevenueDetailModal(); openCostModal('${c.id}', '${assignmentId}')" title="編集" style="width: 26px; height: 26px;">✎</button>
+                  </td>
                 </tr>
-                ${c.notes ? `<tr><td colspan="7" style="background: var(--paper-soft); font-size: 11px; color: var(--ink-muted); padding: 6px 14px;">📝 ${escapeHtml(c.notes)}</td></tr>` : ''}
+                ${c.notes ? `<tr><td colspan="8" style="background: var(--paper-soft); font-size: 11px; color: var(--ink-muted); padding: 6px 14px;">📝 ${escapeHtml(c.notes)}</td></tr>` : ''}
               `).join('')}
             </tbody>
             <tfoot>
@@ -8932,11 +9170,20 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
                 <td colspan="5" style="text-align: right;">原価合計</td>
                 <td style="text-align: right; font-family: 'Shippori Mincho', serif;">${formatMan(totalCostAll)}</td>
                 <td></td>
+                <td></td>
               </tr>
             </tfoot>
           </table>
+          <div style="margin-top: 10px; text-align: right;">
+            <button class="btn-ghost" onclick="closeRevenueDetailModal(); openCostModal(null, '${assignmentId}')" style="padding: 6px 14px; font-size: 12px;">+ 原価を追加</button>
+          </div>
         </div>
       `;
+    } else {
+      html += `<div style="margin-top: 16px; padding: 16px; background: var(--paper-soft); border: 1px dashed var(--border); text-align: center;">
+        <span style="color: var(--ink-muted); font-size: 12px; margin-right: 12px;">原価明細がまだありません</span>
+        <button class="btn-ghost" onclick="closeRevenueDetailModal(); openCostModal(null, '${assignmentId}')" style="padding: 6px 14px; font-size: 12px;">+ 原価を追加</button>
+      </div>`;
     }
 
     document.getElementById('rd-body').innerHTML = html;
@@ -8977,6 +9224,13 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
   function setupRevenueUI() {
     document.querySelectorAll('#revenue-modal .toggle-group[data-rfield="rateMode"] .toggle-option').forEach(opt => {
       opt.addEventListener('click', () => setRevenueRateMode(opt.dataset.value));
+    });
+    // category toggle
+    document.querySelectorAll('#revenue-modal .toggle-group[data-rfield="category"] .toggle-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('#revenue-modal .toggle-group[data-rfield="category"] .toggle-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+      });
     });
     ['rf-unitPrice', 'rf-quantity', 'rf-taxRate'].forEach(id => {
       const el = document.getElementById(id);
