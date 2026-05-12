@@ -2907,12 +2907,6 @@
     <div class="modal-body">
       <input type="hidden" id="f-id" />
 
-      <!-- 面談メモエリア (自由記入) -->
-      <div class="form-section" style="background: #FBF9F1; padding: 14px 16px; border: 1px solid var(--border-strong); margin-bottom: 28px;">
-        <div class="form-section-title" style="margin-bottom: 8px; padding-bottom: 0; border: none;">📝 面談メモ <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入)</span></div>
-        <textarea id="f-rawMemo" placeholder="面談中に自由に記入できます。" rows="18" style="line-height: 1.7; font-size: 13px; border-color: var(--border-strong); min-height: 240px; max-height: 70vh; resize: vertical;" oninput="autoGrowMemo(this)"></textarea>
-      </div>
-
       <!-- 基本情報 -->
       <div class="form-section">
         <div class="form-section-title">基本情報</div>
@@ -3161,11 +3155,11 @@
         <button type="button" class="service-add-btn" onclick="addServiceRow()" style="width: 100%; margin-top: 8px;">+ サービスを追加</button>
       </div>
 
-      <!-- メモ -->
+      <!-- メモ・所感 (面談中の自由記入欄) -->
       <div class="form-section">
-        <div class="form-section-title">推奨案件・所感</div>
+        <div class="form-section-title">面談メモ・所感 <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入)</span></div>
         <div class="form-field">
-          <textarea id="f-notes" placeholder="例:BtoB SaaSの新規開拓案件向き。中長期商談型で、稟議資料作成も対応可能。リモート希望。"></textarea>
+          <textarea id="f-notes" placeholder="面談中の聞き取りメモ・推奨案件・所感などを自由に記入..." rows="14" style="line-height: 1.7; min-height: 200px; max-height: 70vh; resize: vertical;" oninput="autoGrowMemo(this)"></textarea>
         </div>
       </div>
     </div>
@@ -4848,9 +4842,12 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         document.getElementById('f-fsWinRate').value = c.fsWinRate || '';
         document.getElementById('f-fsAchievement').value = c.fsAchievement || '';
         document.getElementById('f-rankCtoB').value = c.rankCtoB || '';
-        document.getElementById('f-notes').value = c.notes || '';
-        const memoEl = document.getElementById('f-rawMemo');
-        if (memoEl) { memoEl.value = c.rawMemo || ''; autoGrowMemo(memoEl); }
+        // rawMemo (旧メモ) は notes に統合表示
+        const combinedNotes = c.rawMemo && c.notes && !c.notes.includes(c.rawMemo)
+          ? c.rawMemo + '\n\n' + c.notes
+          : (c.notes || c.rawMemo || '');
+        document.getElementById('f-notes').value = combinedNotes;
+        setTimeout(() => autoGrowMemo(document.getElementById('f-notes')), 50);
         document.getElementById('f-partnerCompany').value = c.partnerCompany || '';
         const partnerSel = document.getElementById('f-partnerSelect');
         if (partnerSel) partnerSel.value = (c.partnerCompany && partners.includes(c.partnerCompany)) ? c.partnerCompany : '';
@@ -4877,8 +4874,8 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
-      const memoEl = document.getElementById('f-rawMemo');
-      if (memoEl) memoEl.value = '';
+      const notesEl = document.getElementById('f-notes');
+      if (notesEl) { notesEl.style.height = ''; }
       const partnerSelNew = document.getElementById('f-partnerSelect');
       if (partnerSelNew) partnerSelNew.value = '';
       const today = new Date();
@@ -5112,7 +5109,6 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       fsWinRate: numOrNull('f-fsWinRate'),
       fsAchievement: numOrNull('f-fsAchievement'),
       notes: document.getElementById('f-notes').value.trim() || null,
-      rawMemo: (document.getElementById('f-rawMemo')?.value || '').trim() || null,
       services: readServicesFromForm(),
     };
     const ok = await saveToStorage(c);
