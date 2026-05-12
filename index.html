@@ -4970,12 +4970,20 @@
   }
   function applyJobSort(list) {
     const sorted = [...list];
+    // First sort by user-selected criterion
     switch (jobSortBy) {
       case 'date-asc': sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); break;
       case 'date-desc': sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); break;
       case 'deadline': sorted.sort((a, b) => { if (!a.deadline) return 1; if (!b.deadline) return -1; return new Date(a.deadline) - new Date(b.deadline); }); break;
       case 'title': sorted.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ja')); break;
     }
+    // Then group by status (stable sort): 募集中 → マッチング中 → 受注済み → クローズ
+    const statusOrder = { open: 0, matching: 1, filled: 2, closed: 3 };
+    sorted.sort((a, b) => {
+      const oa = statusOrder[a.status] != null ? statusOrder[a.status] : 4;
+      const ob = statusOrder[b.status] != null ? statusOrder[b.status] : 4;
+      return oa - ob;
+    });
     return sorted;
   }
   function renderJobStats() {
