@@ -3191,7 +3191,7 @@
         <div class="form-section-title">案件基本情報</div>
         <div class="form-grid form-grid-3">
           <div class="form-field">
-            <label>案件No</label>
+            <label>案件No <span style="font-size: 10px; color: var(--ink-faint); font-weight: 400;">(受注済みは非表示)</span></label>
             <input type="text" id="jf-caseNo" placeholder="例: 1, 30, A-12" />
           </div>
           <div class="form-field form-span-2">
@@ -4986,7 +4986,7 @@
     const jobProposals = proposals.filter(p => p.jobId === j.id);
     return `<div class="card" onclick="openJobDetail('${j.id}')"><div class="card-accent" style="background: var(--accent);"></div>
       <div class="card-header"><div class="card-name-row"><div style="flex: 1; min-width: 0;">
-        <div class="card-name">${j.caseNo ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--primary); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px;">No.${escapeHtml(j.caseNo)}</span>` : ''}${escapeHtml(j.title || '(無題)')}</div>
+        <div class="card-name">${j.status === 'filled' ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--accent); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px; letter-spacing: 0.05em;">受注済み</span>` : (j.caseNo ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--primary); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px;">No.${escapeHtml(j.caseNo)}</span>` : '')}${escapeHtml(j.title || '(無題)')}</div>
         <div class="job-meta-row"><span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>${isUrgent ? '<span class="job-status" style="background: var(--rank-c-bg); color: var(--rank-c-fg); border-color: var(--rank-c-border);">期限間近</span>' : ''}</div>
         <div class="card-meta" style="margin-top: 6px;">${j.client ? `<strong style="color: var(--ink);">${escapeHtml(j.client)}</strong>` : '<span style="color: var(--ink-faint);">クライアント未設定</span>'}${j.recruiter ? ` · 担当 ${escapeHtml(j.recruiter)}` : ''}</div>
       </div><div class="card-actions" onclick="event.stopPropagation()"><button class="icon-btn" onclick="openJobModal('${j.id}')" title="編集">✎</button></div></div></div>
@@ -5127,9 +5127,11 @@
     const id = editingJobId || `${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const existing = editingJobId ? jobs.find(j => j.id === id) : null;
     const numOrNull = (id) => { const v = document.getElementById(id).value; return v === '' ? null : Number(v); };
+    const newStatus = document.getElementById('jf-status').value || 'open';
     const j = {
       id, createdAt: existing ? existing.createdAt : Date.now(), updatedAt: Date.now(), _v: 1,
-      caseNo: document.getElementById('jf-caseNo').value.trim() || null,
+      // 受注済み (filled) になったら案件Noを記載しない
+      caseNo: (newStatus === 'filled' ? null : (document.getElementById('jf-caseNo').value.trim() || null)),
       title, client,
       recruiter: document.getElementById('jf-recruiter').value.trim() || null,
       status: document.getElementById('jf-status').value || 'open',
@@ -5180,7 +5182,7 @@
   function openJobDetail(id) {
     const j = jobs.find(x => x.id === id);
     if (!j) return;
-    document.getElementById('job-detail-title').textContent = (j.caseNo ? `No.${j.caseNo} ` : '') + j.title;
+    document.getElementById('job-detail-title').textContent = (j.status === 'filled' ? '【受注済み】 ' : (j.caseNo ? `No.${j.caseNo} ` : '')) + j.title;
     const safe = (v) => v ? escapeHtml(String(v)) : '<span class="empty">未入力</span>';
     const hours = j.reqWorkingHours || DEFAULT_HOURS;
     let rateBlock = '';
