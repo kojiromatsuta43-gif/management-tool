@@ -4921,6 +4921,12 @@
   let jobs = [];
   let jobFilters = { status: 'all', work: 'all', pos: 'all' };
   let jobSortBy = 'date-desc';
+  let expandedJobIds = new Set();
+  function toggleJobExpand(id) {
+    if (expandedJobIds.has(id)) expandedJobIds.delete(id);
+    else expandedJobIds.add(id);
+    renderJobs();
+  }
   let editingJobId = null;
   const jobRateState = { client: { mode: 'hourly' }, candProp: { mode: 'hourly' } };
   async function loadJobs() {
@@ -5036,25 +5042,123 @@
     } else if (positionsFilled > 0) {
       staffingBadge = `<span class="job-status" style="background: var(--paper); color: var(--primary); border-color: var(--primary);">${positionsFilled}名稼働中</span>`;
     }
-    return `<div class="card" onclick="openJobDetail('${j.id}')"><div class="card-accent" style="background: var(--accent);"></div>
-      <div class="card-header"><div class="card-name-row"><div style="flex: 1; min-width: 0;">
-        <div class="card-name">${j.status === 'filled' ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--accent); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px; letter-spacing: 0.05em;">受注済み</span>` : (j.caseNo ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--primary); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px;">No.${escapeHtml(j.caseNo)}</span>` : '')}${escapeHtml(j.title || '(無題)')}</div>
-        <div class="job-meta-row"><span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>${staffingBadge}${isUrgent ? '<span class="job-status" style="background: var(--rank-c-bg); color: var(--rank-c-fg); border-color: var(--rank-c-border);">期限間近</span>' : ''}</div>
-        <div class="card-meta" style="margin-top: 6px;">${j.client ? `<strong style="color: var(--ink);">${escapeHtml(j.client)}</strong>` : '<span style="color: var(--ink-faint);">クライアント未設定</span>'}${j.recruiter ? ` · 担当 ${escapeHtml(j.recruiter)}` : ''}</div>
-      </div><div class="card-actions" onclick="event.stopPropagation()"><button class="icon-btn" onclick="openJobModal('${j.id}')" title="編集">✎</button></div></div></div>
-      <div class="card-body"><div class="info-grid">
-        <div class="info-row"><span class="info-key">期限</span><span class="info-value ${j.deadline ? '' : 'empty'}" ${isUrgent ? 'style="color: var(--rank-c-fg); font-weight: 600;"' : ''}>${j.deadline ? formatDate(j.deadline) : '—'}</span></div>
-        <div class="info-row"><span class="info-key">スタート</span><span class="info-value ${j.startDate ? '' : 'empty'}">${j.startDate ? formatDate(j.startDate) : '—'}</span></div>
+    const isExpanded = expandedJobIds.has(j.id);
+    const caseOrFilledBadge = j.status === 'filled' ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--accent); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px; letter-spacing: 0.05em;">受注済み</span>` : (j.caseNo ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--primary); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px;">No.${escapeHtml(j.caseNo)}</span>` : '');
+
+    // ===== Compact (デフォルト・ Indeed風) =====
+    if (!isExpanded) {
+      // Compact: タイトル / 会社・場所 / 単価+ステータス
+      const compactRateLine = rateLine || '—';
+      return `<div class="card" onclick="toggleJobExpand('${j.id}')" style="cursor: pointer;"><div class="card-accent" style="background: var(--accent);"></div>
+        <div style="padding: 18px 22px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+            <div style="flex: 1; min-width: 0;">
+              <div class="card-name" style="font-size: 17px; line-height: 1.4; margin-bottom: 8px;">${caseOrFilledBadge}${escapeHtml(j.title || '(無題)')}</div>
+              <div style="font-size: 13px; color: var(--ink); line-height: 1.5;">${j.client ? `<strong>${escapeHtml(j.client)}</strong>` : '<span style="color: var(--ink-faint);">クライアント未設定</span>'}</div>
+              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">${j.recruiter ? `担当 ${escapeHtml(j.recruiter)}` : ''}${j.reqWorkStyle ? (j.recruiter ? ' · ' : '') + reqWorkStyleLabel(j.reqWorkStyle) : ''}${isUrgent ? ' · <span style="color: var(--rank-c-fg);">期限間近</span>' : ''}</div>
+              <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                <span class="tag" style="font-size: 12px; padding: 3px 10px; background: var(--paper-soft); color: var(--ink); border-color: var(--border-strong); font-weight: 500;">${rateLine || '単価未設定'}</span>
+                <span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>
+                ${staffingBadge}
+              </div>
+            </div>
+            <div onclick="event.stopPropagation()" style="display: flex; gap: 4px;">
+              <button class="icon-btn" onclick="event.stopPropagation(); openJobModal('${j.id}')" title="編集">✎</button>
+              <button class="icon-btn" onclick="event.stopPropagation(); toggleJobExpand('${j.id}')" title="展開">⌄</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // ===== Expanded (タップ後・全情報表示) =====
+    // 受注済み人材一覧
+    let assignmentsBlockInline = '';
+    if (jobAssignments.length) {
+      assignmentsBlockInline = `<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+        <div style="font-size: 11px; color: var(--ink-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 500;">受注済み人材 (${jobAssignments.length}名)</div>
+        ${positionsWanted ? `<div style="margin-bottom: 8px; font-size: 12px; color: var(--ink);"><b style="color: var(--primary);">${positionsFilled}</b> / <b>${positionsWanted}</b>名 充足${positionsWanted - positionsFilled > 0 ? ` <span style="color: var(--accent); margin-left: 8px;">残 ${positionsWanted - positionsFilled}名 募集中</span>` : ' <span style="color: #2C7A4A;">✓ 全員充足</span>'}</div>` : ''}
+        <div style="display: grid; gap: 4px;">
+          ${jobAssignments.sort((a,b) => (a.status==='active'?0:1)-(b.status==='active'?0:1)).map(a => {
+            const cand = candidates.find(c => c.id === a.candId);
+            const period = `${a.startMonth || '?'}〜${a.endMonth || '継続中'}`;
+            const isEnded = a.status !== 'active';
+            return `<div style="display: flex; align-items: baseline; gap: 10px; padding: 5px 8px; background: var(--paper-soft); border: 1px solid var(--border); font-size: 12px; ${isEnded ? 'opacity: 0.6;' : ''}">
+              <span style="font-weight: 500; min-width: 90px;"><a href="#" onclick="event.preventDefault(); event.stopPropagation(); switchTab('candidates'); openDetail('${a.candId}');" style="color: var(--primary); text-decoration: none;">${cand ? escapeHtml(cand.name) : '(削除済)'}</a></span>
+              <span style="color: var(--ink-muted); font-size: 11px;">${period}</span>
+              <span style="margin-left: auto; font-family: 'Shippori Mincho', serif;">${formatMan(a.monthlyRevenue)}</span>
+              <span style="color: var(--ink-muted); font-size: 11px;">原${formatMan(a.monthlyCost)}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+    // 提案中候補者
+    let proposalsBlockInline = '';
+    if (jobProposals.length) {
+      const isLong = jobProposals.length >= 5;
+      proposalsBlockInline = `<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+        <div style="font-size: 11px; color: var(--ink-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 500;">提案中の候補者 (${jobProposals.length}名)</div>
+        <div${isLong ? ' style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border); padding: 6px 10px; background: var(--paper-soft);"' : ''}>${jobProposals.map(p => { const c = candidates.find(x => x.id === p.candidateId); if (!c) return ''; return `<div class="proposal-item" style="padding: 5px 0; font-size: 12px;"><span class="proposal-item-name"><a href="#" onclick="event.preventDefault(); event.stopPropagation(); switchTab('candidates'); openDetail('${c.id}');" style="color: var(--primary); text-decoration: none;">${escapeHtml(c.name)}</a></span><span class="proposal-item-actions"><span class="proposal-status ${p.status}" style="font-size: 10px;">${proposalStatusLabel(p.status)}</span><button class="icon-btn" onclick="event.stopPropagation(); openProposalModal('${p.jobId}', '${p.candidateId}')" title="ステータス変更" style="width: 22px; height: 22px; font-size: 10px;">✎</button></span></div>`; }).join('')}</div>
+      </div>`;
+    }
+
+    return `<div class="card" style="cursor: default; box-shadow: var(--shadow-md); border-color: var(--primary);"><div class="card-accent" style="background: var(--accent);"></div>
+      <div style="padding: 22px 24px 20px;">
+        <!-- Header (タップで折りたたみ) -->
+        <div onclick="toggleJobExpand('${j.id}')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border);">
+          <div style="flex: 1; min-width: 0;">
+            <div class="card-name" style="font-size: 19px; line-height: 1.4; margin-bottom: 8px;">${caseOrFilledBadge}${escapeHtml(j.title || '(無題)')}</div>
+            <div style="font-size: 14px; color: var(--ink); margin-bottom: 4px;">${j.client ? `<strong>${escapeHtml(j.client)}</strong>` : '<span style="color: var(--ink-faint);">クライアント未設定</span>'}</div>
+            <div style="font-size: 12px; color: var(--ink-muted);">${j.recruiter ? `担当 ${escapeHtml(j.recruiter)}` : ''}${j.reqWorkStyle ? (j.recruiter ? ' · ' : '') + reqWorkStyleLabel(j.reqWorkStyle) : ''}</div>
+            <div style="font-size: 16px; color: var(--ink); margin-top: 8px; font-weight: 500;">${rateLine || '<span style="color: var(--ink-faint); font-weight: 400;">単価未設定</span>'}</div>
+          </div>
+          <button class="icon-btn" onclick="event.stopPropagation(); toggleJobExpand('${j.id}')" title="折りたたむ" style="flex-shrink: 0;">⌃</button>
+        </div>
+
+        <!-- アクション行 (Indeed風) -->
+        <div onclick="event.stopPropagation()" style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+          <button class="btn-primary" onclick="event.stopPropagation(); openJobModal('${j.id}')" style="background: var(--primary); padding: 10px 24px;">✎ 編集する</button>
+          <button class="btn-ghost" onclick="event.stopPropagation(); closeJobDetail(); switchTab('matching'); matchMode = 'job-to-cand'; document.querySelectorAll('.match-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mmode === matchMode)); refreshMatchTarget(); document.getElementById('match-target').value = '${j.id}'; renderMatching();" style="padding: 10px 16px;" title="マッチング">⌖ マッチング</button>
+          <button class="btn-ghost" onclick="event.stopPropagation(); openJobDetail('${j.id}')" style="padding: 10px 14px;" title="モーダルで詳細表示">⛶ 拡大</button>
+        </div>
+
+        <!-- バッジ群 -->
+        <div style="margin-top: 16px; display: flex; gap: 6px; flex-wrap: wrap;">
+          <span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>
+          ${staffingBadge}
+          ${isUrgent ? '<span class="job-status" style="background: var(--rank-c-bg); color: var(--rank-c-fg); border-color: var(--rank-c-border);">期限間近</span>' : ''}
+          ${tags.map(t => `<span class="tag${t.accent ? ' accent' : ''}">${t.label}</span>`).join('')}
+          ${j.preferredIndustry ? `<span class="tag" style="background: var(--accent-soft); color: var(--accent); border-color: var(--accent);">業界:${escapeHtml(j.preferredIndustry)}</span>` : ''}
+          ${j.deadline ? `<span class="tag" style="${isUrgent ? 'color: var(--rank-c-fg);' : ''}">期限 ${formatDate(j.deadline)}</span>` : ''}
+          ${j.startDate ? `<span class="tag">開始 ${formatDate(j.startDate)}</span>` : ''}
+        </div>
+
+        <!-- 必須/歓迎条件 -->
+        ${j.mustHave || j.niceToHave ? `<div style="margin-top: 18px;">
+          ${j.mustHave ? `<div style="padding: 12px 14px; background: var(--rank-c-bg); border-left: 4px solid var(--rank-c-border); margin-bottom: 8px;">
+            <div style="font-size: 11px; color: var(--rank-c-fg); font-weight: 600; letter-spacing: 0.08em; margin-bottom: 6px;">⚑ 絶対条件 (必須)</div>
+            <div style="white-space: pre-wrap; line-height: 1.7; font-size: 13px; color: var(--ink);">${escapeHtml(j.mustHave)}</div>
+          </div>` : ''}
+          ${j.niceToHave ? `<div style="padding: 12px 14px; background: #E8F2EA; border-left: 4px solid #5DA37A;">
+            <div style="font-size: 11px; color: #2C7A4A; font-weight: 600; letter-spacing: 0.08em; margin-bottom: 6px;">★ 歓迎条件 (WANT)</div>
+            <div style="white-space: pre-wrap; line-height: 1.7; font-size: 13px; color: var(--ink);">${escapeHtml(j.niceToHave)}</div>
+          </div>` : ''}
+        </div>` : ''}
+
+        ${assignmentsBlockInline}
+        ${proposalsBlockInline}
+
+        ${j.background ? `<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+          <div style="font-size: 11px; color: var(--ink-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; font-weight: 500;">募集背景・メモ</div>
+          <div style="white-space: pre-wrap; line-height: 1.7; font-size: 12px; color: var(--ink-muted);">${escapeHtml(j.background)}</div>
+        </div>` : ''}
+
+        <!-- 折りたたむリンク (下) -->
+        <div onclick="toggleJobExpand('${j.id}')" style="margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border); text-align: center; cursor: pointer; color: var(--primary); font-size: 13px;">表示を減らす ⌃</div>
       </div>
-      <div style="font-size: 11px; color: var(--ink-muted); margin: 8px 0; padding: 6px 10px; background: var(--paper-soft); border: 1px solid var(--border);"><span style="color: var(--ink-faint); margin-right: 6px;">単価</span>${rateLine}</div>
-      <div class="tags">${tags.map(t => `<span class="tag${t.accent ? ' accent' : ''}">${t.label}</span>`).join('')}${j.preferredIndustry ? `<span class="tag" style="background: var(--accent-soft); color: var(--accent); border-color: var(--accent);">業界:${escapeHtml(j.preferredIndustry)}</span>` : ''}</div>
-      ${j.mustHave || j.niceToHave ? `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 11px; line-height: 1.5;">
-        ${j.mustHave ? `<div style="padding: 6px 10px; background: var(--rank-c-bg); border-left: 3px solid var(--rank-c-border); margin-bottom: 4px;"><b style="color: var(--rank-c-fg); font-size: 10px; letter-spacing: 0.08em;">⚑ 必須</b><div style="color: var(--ink); white-space: pre-wrap; margin-top: 2px;">${escapeHtml(j.mustHave.length > 100 ? j.mustHave.substring(0, 100) + '…' : j.mustHave)}</div></div>` : ''}
-        ${j.niceToHave ? `<div style="padding: 6px 10px; background: #E8F2EA; border-left: 3px solid #5DA37A;"><b style="color: #2C7A4A; font-size: 10px; letter-spacing: 0.08em;">★ 歓迎</b><div style="color: var(--ink); white-space: pre-wrap; margin-top: 2px;">${escapeHtml(j.niceToHave.length > 100 ? j.niceToHave.substring(0, 100) + '…' : j.niceToHave)}</div></div>` : ''}
-      </div>` : ''}
-      ${jobProposals.length ? renderProposalListForJob(j.id, jobProposals) : ''}
-      ${j.background ? `<div class="card-notes" style="margin-top: 12px;">${escapeHtml(j.background)}</div>` : ''}
-      </div></div>`;
+    </div>`;
   }
   function renderProposalListForJob(jobId, props) {
     return `<div class="proposal-list"><div class="proposal-list-title">提案中の候補者 (${props.length}名)</div>${props.map(p => { const c = candidates.find(x => x.id === p.candidateId); if (!c) return ''; return `<div class="proposal-item"><span class="proposal-item-name">${escapeHtml(c.name)}</span><span class="proposal-item-actions"><span class="proposal-status ${p.status}">${proposalStatusLabel(p.status)}</span><button class="icon-btn" onclick="event.stopPropagation(); openProposalModal('${p.jobId}', '${p.candidateId}')" title="ステータス変更" style="width: 24px; height: 24px; font-size: 10px;">✎</button></span></div>`; }).join('')}</div>`;
@@ -5074,7 +5178,15 @@
       else container.innerHTML = `<div class="empty-state"><div class="empty-mark">無</div><div class="empty-title">該当する案件がありません</div><div class="empty-text">フィルター条件を変更してみてください</div></div>`;
       return;
     }
-    container.innerHTML = `<div class="card-grid">${filtered.map(renderJobCard).join('')}</div>`;
+    // Expanded cards should span full width
+    container.innerHTML = `<div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">${filtered.map(j => {
+      const html = renderJobCard(j);
+      // If expanded, wrap to make it full width
+      if (expandedJobIds.has(j.id)) {
+        return `<div style="grid-column: 1 / -1;">${html}</div>`;
+      }
+      return html;
+    }).join('')}</div>`;
   }
 
   // ============ Job Modal ============
