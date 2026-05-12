@@ -3802,6 +3802,20 @@
               <option value="">— 案件を選択 (任意) —</option>
             </select>
           </div>
+          <div class="form-field">
+            <label>経路</label>
+            <div class="toggle-group" data-afield="source">
+              <div class="toggle-option" data-value="in-house">自社</div>
+              <div class="toggle-option" data-value="partner">パートナー</div>
+            </div>
+          </div>
+          <div class="form-field" id="af-partner-field" style="display: none;">
+            <label>パートナー企業</label>
+            <select id="af-partnerSelect">
+              <option value="">— 既存パートナーから選ぶ —</option>
+            </select>
+            <input type="text" id="af-partnerCompany" list="partner-list" placeholder="または直接入力" style="margin-top: 4px;" />
+          </div>
           <div class="form-field form-full">
             <label>クライアント名（案件未紐付け時のみ手入力）</label>
             <input type="text" id="af-clientOverride" placeholder="案件選択時は自動入力" />
@@ -7349,6 +7363,16 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
   function refreshAssignmentSelects() {
     const candSel = document.getElementById('af-candId');
     const jobSel = document.getElementById('af-jobId');
+    const partnerSel = document.getElementById('af-partnerSelect');
+    if (partnerSel) {
+      const cur = partnerSel.value;
+      partnerSel.innerHTML = '<option value="">— 既存パートナーから選ぶ —</option>';
+      const names = (typeof partnerObjs !== 'undefined' && Array.isArray(partnerObjs))
+        ? partnerObjs.map(p => p.name).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'))
+        : [];
+      names.forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; partnerSel.appendChild(o); });
+      if (cur && names.includes(cur)) partnerSel.value = cur;
+    }
     if (candSel) {
       const cur = candSel.value;
       candSel.innerHTML = '<option value="">— 求職者を選択 —</option>';
@@ -7412,6 +7436,13 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         document.getElementById('af-candId').value = a.candId || '';
         document.getElementById('af-jobId').value = a.jobId || '';
         document.getElementById('af-clientOverride').value = a.clientOverride || '';
+        // パートナー情報
+        const asgnSource = a.source || (a.partnerCompany ? 'partner' : 'in-house');
+        document.querySelectorAll('#assignment-modal .toggle-group[data-afield="source"] .toggle-option').forEach(o => o.classList.toggle('active', o.dataset.value === asgnSource));
+        document.getElementById('af-partnerCompany').value = a.partnerCompany || '';
+        const asgnPartnerSel = document.getElementById('af-partnerSelect');
+        if (asgnPartnerSel) asgnPartnerSel.value = (a.partnerCompany && asgnPartnerSel.querySelector(`option[value="${a.partnerCompany}"]`)) ? a.partnerCompany : '';
+        document.getElementById('af-partner-field').style.display = asgnSource === 'partner' ? '' : 'none';
         document.getElementById('af-startMonth').value = a.startMonth || '';
         document.getElementById('af-endMonth').value = a.endMonth || '';
         document.getElementById('af-status').value = a.status || 'active';
@@ -7429,7 +7460,11 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         document.getElementById('af-notes').value = a.notes || '';
       }
     } else {
-      ['af-id','af-candId','af-jobId','af-clientOverride','af-endMonth','af-monthlyRevenue','af-monthlyCost','af-notes'].forEach(i => { document.getElementById(i).value = ''; });
+      ['af-id','af-candId','af-jobId','af-clientOverride','af-endMonth','af-monthlyRevenue','af-monthlyCost','af-notes','af-partnerCompany'].forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
+      document.querySelectorAll('#assignment-modal .toggle-group[data-afield="source"] .toggle-option').forEach(o => o.classList.remove('active'));
+      const _asgnPartnerSelN = document.getElementById('af-partnerSelect');
+      if (_asgnPartnerSelN) _asgnPartnerSelN.value = '';
+      document.getElementById('af-partner-field').style.display = 'none';
       document.getElementById('af-startMonth').value = currentMonth();
       document.getElementById('af-status').value = 'active';
       document.getElementById('af-monthlyHours').value = 160;
@@ -7489,6 +7524,9 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     // Compute and store both modes' effective monthly figures for consistency
     const monthlyRevenue = mode === 'hourly' ? inputRev * monthlyHours : inputRev;
     const monthlyCost = mode === 'hourly' ? inputCost * monthlyHours : inputCost;
+    const asgnSourceActive = document.querySelector('#assignment-modal .toggle-group[data-afield="source"] .toggle-option.active');
+    const asgnSource = asgnSourceActive ? asgnSourceActive.dataset.value : null;
+    const asgnPartnerCompany = document.getElementById('af-partnerCompany').value.trim() || null;
     const a = {
       id,
       createdAt: existing ? existing.createdAt : Date.now(),
@@ -7497,6 +7535,8 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       candId,
       jobId: jobId || null,
       clientOverride: document.getElementById('af-clientOverride').value.trim() || null,
+      source: asgnSource,
+      partnerCompany: asgnSource === 'partner' ? asgnPartnerCompany : null,
       startMonth,
       endMonth: document.getElementById('af-endMonth').value || null,
       status: document.getElementById('af-status').value || 'active',
@@ -7604,6 +7644,16 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         <div class="assignment-card-main" onclick="openAssignmentModal('${a.id}')">
           <div class="assignment-headline">
             <span class="assignment-cand-name">${escapeHtml(candName)}</span>
+            ${(() => {
+              const partnerSource = a.partnerCompany || (cand && cand.source === 'partner' ? cand.partnerCompany : null);
+              if (partnerSource) {
+                return `<span class="tag source-partner" style="font-size: 10px; padding: 2px 8px;">${escapeHtml(partnerSource)}</span>`;
+              }
+              if (a.source === 'in-house' || (cand && cand.source === 'in-house')) {
+                return `<span class="tag source-in-house" style="font-size: 10px; padding: 2px 8px;">自社</span>`;
+              }
+              return '';
+            })()}
             ${job ? `<span class="assignment-job">${escapeHtml(jobTitle)}</span>` : ''}
             ${client ? `<span class="assignment-client">${escapeHtml(client)}</span>` : ''}
           </div>
@@ -7685,6 +7735,47 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
     document.querySelectorAll('#assignment-modal .toggle-group[data-afield="rateMode"] .toggle-option').forEach(opt => {
       opt.addEventListener('click', () => setAssignmentRateMode(opt.dataset.value));
     });
+    // source toggle (パートナー/自社)
+    document.querySelectorAll('#assignment-modal .toggle-group[data-afield="source"] .toggle-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('#assignment-modal .toggle-group[data-afield="source"] .toggle-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        document.getElementById('af-partner-field').style.display = opt.dataset.value === 'partner' ? '' : 'none';
+        // 求職者の partnerCompany を初期値として引き継ぐ
+        if (opt.dataset.value === 'partner') {
+          const candId = document.getElementById('af-candId').value;
+          const cand = candidates.find(c => c.id === candId);
+          const pcEl = document.getElementById('af-partnerCompany');
+          const pcSel = document.getElementById('af-partnerSelect');
+          if (cand && cand.partnerCompany && pcEl && !pcEl.value) {
+            pcEl.value = cand.partnerCompany;
+            if (pcSel && pcSel.querySelector(`option[value="${cand.partnerCompany}"]`)) pcSel.value = cand.partnerCompany;
+          }
+        }
+      });
+    });
+    // partner select sync
+    const partnerSel = document.getElementById('af-partnerSelect');
+    if (partnerSel) {
+      partnerSel.addEventListener('change', () => {
+        if (partnerSel.value) document.getElementById('af-partnerCompany').value = partnerSel.value;
+      });
+    }
+    // 求職者選択時、candidate.partnerCompany があれば自動で経路をパートナーに
+    const candSel = document.getElementById('af-candId');
+    if (candSel) {
+      candSel.addEventListener('change', () => {
+        const cand = candidates.find(c => c.id === candSel.value);
+        if (cand && cand.source === 'partner' && cand.partnerCompany) {
+          const sourceOpt = document.querySelector('#assignment-modal .toggle-group[data-afield="source"] .toggle-option[data-value="partner"]');
+          if (sourceOpt && !sourceOpt.classList.contains('active')) sourceOpt.click();
+          const pcEl = document.getElementById('af-partnerCompany');
+          if (pcEl && !pcEl.value) pcEl.value = cand.partnerCompany;
+          const pcSel = document.getElementById('af-partnerSelect');
+          if (pcSel && pcSel.querySelector(`option[value="${cand.partnerCompany}"]`)) pcSel.value = cand.partnerCompany;
+        }
+      });
+    }
     // auto-fill clientOverride when job picked
     const jobSel = document.getElementById('af-jobId');
     if (jobSel) {

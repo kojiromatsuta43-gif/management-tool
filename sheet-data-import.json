@@ -1,8 +1,8 @@
 {
   "_schema": 1,
-  "_exportedAt": "2026-05-12T11:52:20.292611Z",
+  "_exportedAt": "2026-05-12T12:12:23.191066Z",
   "_app": "management-tool",
-  "_note": "スプシから抽出 (案件重複統合 / 募集人数設定済み)",
+  "_note": "稼働人材にパートナー元(source/partnerCompany)を追加",
   "candidates": [
     {
       "id": "c_seed_1778512114787_sjvm",
@@ -1531,7 +1531,7 @@
       "recruiter": "大木里奈",
       "currentStatus": "employed",
       "source": "partner",
-      "partnerCompany": null,
+      "partnerCompany": "合同会社ネモフィラ",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -2838,7 +2838,7 @@
       "recruiter": "武井 宏彰",
       "currentStatus": "employed",
       "source": "partner",
-      "partnerCompany": null,
+      "partnerCompany": "合同会社ネモフィラ",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5168,8 +5168,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "株式会社N.Create",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5203,8 +5203,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "ゼロプライド株式会社",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5378,8 +5378,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "SityCanvas株式会社",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5413,8 +5413,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "株式会社HIGHFIVE",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5483,8 +5483,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "合同会社ネモフィラ",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5588,8 +5588,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "合同会社ネモフィラ",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5868,8 +5868,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "株式会社リグロス",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -5903,8 +5903,8 @@
       "interviewDate": null,
       "recruiter": null,
       "currentStatus": "employed",
-      "source": "in-house",
-      "partnerCompany": null,
+      "source": "partner",
+      "partnerCompany": "株式会社リグロス",
       "rankSell": null,
       "rankNotAbsent": null,
       "rankSelfDriven": null,
@@ -8556,7 +8556,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 920,
       "hourlyCost": 583,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 48.0%\n契約期間: 2025-02〜2025-04 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 48.0%\n契約期間: 2025-02〜2025-04 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519828_7sw7",
@@ -8575,7 +8576,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1562,
       "hourlyCost": 1328,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-01〜2025-01 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-01〜2025-01 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519830_j6fo",
@@ -8594,7 +8596,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2400,
       "hourlyCost": 2160,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 90.0%\n契約期間: 2025-01〜2025-05 (5ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 90.0%\n契約期間: 2025-01〜2025-05 (5ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519831_cuof",
@@ -8613,7 +8616,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1562,
       "hourlyCost": 1296,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-01〜2025-01 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-01〜2025-01 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519832_khzb",
@@ -8632,7 +8636,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2362,
       "hourlyCost": 2008,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519833_5nqt",
@@ -8651,7 +8656,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1500,
       "hourlyCost": 1395,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 93.0%\n契約期間: 2025-01〜2025-01 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 93.0%\n契約期間: 2025-01〜2025-01 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519834_thiu",
@@ -8670,7 +8676,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1995,
       "hourlyCost": 1795,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 90.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 90.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519836_4by0",
@@ -8689,7 +8696,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1050,
       "hourlyCost": 910,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 90.5%\n契約期間: 2025-02〜2025-02 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 90.5%\n契約期間: 2025-02〜2025-02 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519837_nzqq",
@@ -8708,7 +8716,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 920,
       "hourlyCost": 883,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 96.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 96.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519838_nnam",
@@ -8727,7 +8736,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1760,
       "hourlyCost": 1672,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 95.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 95.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519839_gw16",
@@ -8746,7 +8756,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 960,
       "hourlyCost": 796,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-02〜2025-02 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519840_yd9f",
@@ -8784,7 +8795,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 750,
       "hourlyCost": 525,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 70.0%\n契約期間: 2025-03〜2025-04 (2ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 70.0%\n契約期間: 2025-03〜2025-04 (2ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519843_2owl",
@@ -8803,7 +8815,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 725,
       "hourlyCost": 572,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 79.0%\n契約期間: 2025-03〜2025-06 (4ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 79.0%\n契約期間: 2025-03〜2025-06 (4ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519844_f05u",
@@ -8822,7 +8835,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2500,
       "hourlyCost": 2075,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-03〜2025-05 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-03〜2025-05 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519845_t1a5",
@@ -8841,7 +8855,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1600,
       "hourlyCost": 1344,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-03〜2025-03 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-03〜2025-03 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519847_8a5d",
@@ -8860,7 +8875,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1875,
       "hourlyCost": 1500,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 80.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 80.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519848_kjqo",
@@ -8879,7 +8895,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 980,
       "hourlyCost": 842,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 86.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 86.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519849_lf22",
@@ -8898,7 +8915,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2125,
       "hourlyCost": 1785,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519850_ixr1",
@@ -8917,7 +8935,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2187,
       "hourlyCost": 1837,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519851_8awq",
@@ -8936,7 +8955,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2500,
       "hourlyCost": 2125,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-06〜2025-07 (2ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-06〜2025-07 (2ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519853_4d2c",
@@ -8955,7 +8975,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 3312,
       "hourlyCost": 2815,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519854_p77t",
@@ -8974,7 +8995,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1500,
       "hourlyCost": 1245,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-06〜2025-06 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-06〜2025-06 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519855_q0m2",
@@ -8993,7 +9015,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 250,
       "hourlyCost": null,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 0.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 0.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519856_avko",
@@ -9012,7 +9035,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 4375,
       "hourlyCost": 3631,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519858_t3v0",
@@ -9031,7 +9055,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 250,
       "hourlyCost": null,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 0.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 0.0%\n契約期間: 2025-05〜2025-05 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519859_kksx",
@@ -9050,7 +9075,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 250,
       "hourlyCost": null,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 0.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 0.0%\n契約期間: 2025-06〜2025-08 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519860_19fy",
@@ -9088,7 +9114,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2812,
       "hourlyCost": 2390,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 85.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519862_7zrz",
@@ -9145,7 +9172,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 3200,
       "hourlyCost": 2688,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 84.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519866_pelt",
@@ -9164,7 +9192,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2812,
       "hourlyCost": 2165,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519867_9asz",
@@ -9183,7 +9212,9 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2800,
       "hourlyCost": 2296,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 82.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 82.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)",
+      "source": "partner",
+      "partnerCompany": "AITAID"
     },
     {
       "id": "asgn_seed_1778549519869_gb67",
@@ -9202,7 +9233,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1933,
       "hourlyCost": 1488,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519870_btn3",
@@ -9221,7 +9253,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 878,
       "hourlyCost": 676,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-08〜2025-10 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519871_i5zr",
@@ -9240,7 +9273,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 875,
       "hourlyCost": 621,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 71.0%\n契約期間: 2025-08〜2025-08 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 71.0%\n契約期間: 2025-08〜2025-08 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519872_015v",
@@ -9259,7 +9293,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 3600,
       "hourlyCost": 2772,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-09〜2025-11 (3ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 77.0%\n契約期間: 2025-09〜2025-11 (3ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519873_fi5j",
@@ -9278,7 +9313,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2150,
       "hourlyCost": 1784,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-09〜2025-09 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 83.0%\n契約期間: 2025-09〜2025-09 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519875_73ll",
@@ -9297,7 +9333,8 @@
       "monthlyHours": 160,
       "hourlyRevenue": 1350,
       "hourlyCost": 999,
-      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 74.0%\n契約期間: 2025-10〜2025-10 (1ヶ月)"
+      "notes": "(2025年新規受注見込みデータから自動生成)\n想定原価率: 74.0%\n契約期間: 2025-10〜2025-10 (1ヶ月)",
+      "source": "in-house"
     },
     {
       "id": "asgn_seed_1778549519876_3vtk",
@@ -9335,7 +9372,8 @@
       "monthlyHours": null,
       "hourlyRevenue": 196,
       "hourlyCost": null,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "in-house"
     },
     {
       "id": "asgn_apr_seed_1778551997318_wjeb",
@@ -9354,7 +9392,9 @@
       "monthlyHours": 160,
       "hourlyRevenue": 2300,
       "hourlyCost": 1900,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "株式会社リグロス"
     },
     {
       "id": "asgn_apr_seed_1778551997321_73ax",
@@ -9373,7 +9413,9 @@
       "monthlyHours": 152,
       "hourlyRevenue": 2300,
       "hourlyCost": 2105,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "株式会社リグロス"
     },
     {
       "id": "asgn_apr_seed_1778551997324_lfh4",
@@ -9392,7 +9434,9 @@
       "monthlyHours": null,
       "hourlyRevenue": 2812,
       "hourlyCost": 2390,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "合同会社ネモフィラ"
     },
     {
       "id": "asgn_apr_seed_1778551997330_icpi",
@@ -9411,7 +9455,9 @@
       "monthlyHours": 12,
       "hourlyRevenue": 2900,
       "hourlyCost": 2300,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "株式会社N.Create"
     },
     {
       "id": "asgn_apr_seed_1778551997333_1csf",
@@ -9430,7 +9476,8 @@
       "monthlyHours": null,
       "hourlyRevenue": null,
       "hourlyCost": null,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "in-house"
     },
     {
       "id": "asgn_apr_seed_1778551997335_2svk",
@@ -9449,7 +9496,8 @@
       "monthlyHours": 32,
       "hourlyRevenue": 3750,
       "hourlyCost": 3100,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "in-house"
     },
     {
       "id": "asgn_apr_seed_1778551997338_wkqs",
@@ -9468,7 +9516,8 @@
       "monthlyHours": 100,
       "hourlyRevenue": 3750,
       "hourlyCost": 3170,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "in-house"
     },
     {
       "id": "asgn_apr_seed_1778551997343_wvwy",
@@ -9487,7 +9536,9 @@
       "monthlyHours": 144,
       "hourlyRevenue": 2500,
       "hourlyCost": 2340,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "ゼロプライド株式会社"
     },
     {
       "id": "asgn_apr_seed_1778551997347_15ib",
@@ -9506,7 +9557,8 @@
       "monthlyHours": 149,
       "hourlyRevenue": 2500,
       "hourlyCost": 2107,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "in-house"
     },
     {
       "id": "asgn_apr_seed_1778551997350_g4dt",
@@ -9525,7 +9577,9 @@
       "monthlyHours": 169,
       "hourlyRevenue": 2300,
       "hourlyCost": 2196,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "合同会社ネモフィラ"
     },
     {
       "id": "asgn_apr_seed_1778551997356_jchp",
@@ -9544,7 +9598,9 @@
       "monthlyHours": 85,
       "hourlyRevenue": 3000,
       "hourlyCost": 2500,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "株式会社HIGHFIVE"
     },
     {
       "id": "asgn_apr_seed_1778551997359_bm6e",
@@ -9563,7 +9619,9 @@
       "monthlyHours": null,
       "hourlyRevenue": 2812,
       "hourlyCost": 2397,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "合同会社ネモフィラ"
     },
     {
       "id": "asgn_apr_seed_1778551997363_wuvq",
@@ -9582,7 +9640,8 @@
       "monthlyHours": 128,
       "hourlyRevenue": 2400,
       "hourlyCost": 2200,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "in-house"
     },
     {
       "id": "asgn_apr_seed_1778551997369_2r4n",
@@ -9601,7 +9660,9 @@
       "monthlyHours": null,
       "hourlyRevenue": 4433,
       "hourlyCost": 3705,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "合同会社ネモフィラ"
     },
     {
       "id": "asgn_apr_seed_1778551997375_wzxg",
@@ -9620,7 +9681,9 @@
       "monthlyHours": 160,
       "hourlyRevenue": 3200,
       "hourlyCost": 2844,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "合同会社AITAID"
     },
     {
       "id": "asgn_apr_seed_1778551997378_zie7",
@@ -9639,7 +9702,9 @@
       "monthlyHours": null,
       "hourlyRevenue": 3125,
       "hourlyCost": 2656,
-      "notes": "(2026-04 売上/原価管理から自動生成)"
+      "notes": "(2026-04 売上/原価管理から自動生成)",
+      "source": "partner",
+      "partnerCompany": "SityCanvas株式会社"
     }
   ],
   "revenues": [
