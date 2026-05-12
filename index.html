@@ -8051,6 +8051,51 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
       }
     } catch (e) { console.warn('Migration failed:', e); }
 
+    // 重複 assignment (same candId, jobId) を統合
+    try {
+      const dedupeFlag = await window.storage.get('_dedup_assignments_v1', true).catch(() => null);
+      if (!dedupeFlag) {
+        const seen = new Map();
+        const redirects = new Map();
+        const keep = [];
+        for (const a of assignments) {
+          const key = `${a.candId}|${a.jobId || ''}`;
+          if (seen.has(key)) {
+            const primary = seen.get(key);
+            redirects.set(a.id, primary.id);
+            // Merge: take higher revenue/cost, fill missing partner info
+            if ((a.monthlyRevenue || 0) > (primary.monthlyRevenue || 0)) primary.monthlyRevenue = a.monthlyRevenue;
+            if ((a.monthlyCost || 0) > (primary.monthlyCost || 0)) primary.monthlyCost = a.monthlyCost;
+            if (!primary.partnerCompany && a.partnerCompany) { primary.partnerCompany = a.partnerCompany; primary.source = a.source; }
+            await window.storage.set(`asgn:${primary.id}`, JSON.stringify(primary), true);
+            await window.storage.delete(`asgn:${a.id}`, true);
+          } else {
+            seen.set(key, a);
+            keep.push(a);
+          }
+        }
+        // Redirect revenues/costs
+        for (const r of revenues) {
+          if (redirects.has(r.assignmentId)) {
+            r.assignmentId = redirects.get(r.assignmentId);
+            await window.storage.set(`rev:${r.id}`, JSON.stringify(r), true);
+          }
+        }
+        for (const c of costs) {
+          if (redirects.has(c.assignmentId)) {
+            c.assignmentId = redirects.get(c.assignmentId);
+            await window.storage.set(`cst:${c.id}`, JSON.stringify(c), true);
+          }
+        }
+        assignments = keep;
+        await window.storage.set('_dedup_assignments_v1', '1', true);
+        if (redirects.size > 0) {
+          console.log(`Assignment dedupe: ${redirects.size} duplicates merged`);
+          setTimeout(() => showToast(`重複稼働を統合: ${redirects.size}件`), 1200);
+        }
+      }
+    } catch (e) { console.warn('Assignment dedupe failed:', e); }
+
     // 候補者ステータス: 稼働中assignmentがあるなら自動で 'active'、それ以外はnotesから推定
     try {
       const statFlag = await window.storage.get('_migrated_cand_status_v1', true).catch(() => null);
