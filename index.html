@@ -2670,7 +2670,8 @@
           <button class="chip active" data-jfilter="status" data-value="all">全て</button>
           <button class="chip" data-jfilter="status" data-value="open">募集中</button>
           <button class="chip" data-jfilter="status" data-value="matching">マッチング中</button>
-          <button class="chip" data-jfilter="status" data-value="filled">決定</button>
+          <button class="chip" data-jfilter="status" data-value="filled">受注済み</button>
+          <button class="chip" data-jfilter="status" data-value="recruiting">未充足</button>
           <button class="chip" data-jfilter="status" data-value="closed">クローズ</button>
         </div>
         <div class="filter-divider"></div>
@@ -3197,6 +3198,11 @@
           <div class="form-field form-span-2">
             <label>案件名 <span style="color: var(--accent);">*</span></label>
             <input type="text" id="jf-title" placeholder="例:SaaS新規開拓IS / インサイドセールス即戦力" />
+          </div>
+          <div class="form-field">
+            <label>募集人数</label>
+            <input type="number" id="jf-positionsWanted" min="1" max="99" placeholder="例: 5" />
+            <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;">空欄=未設定 / 1名で問題なし</span>
           </div>
           <div class="form-field">
             <label>クライアント名 <span style="color: var(--accent);">*</span></label>
@@ -4920,7 +4926,7 @@
     try { await window.storage.delete(`job:${id}`, true); return true; }
     catch (e) { return false; }
   }
-  function jobStatusLabel(s) { return { open: '募集中', matching: 'マッチング中', filled: '決定', closed: 'クローズ' }[s] || '—'; }
+  function jobStatusLabel(s) { return { open: '募集中', matching: 'マッチング中', filled: '受注済み', closed: 'クローズ' }[s] || '—'; }
   function reqWorkStyleLabel(s) { if (s === 'any') return '不問'; return workStyleLabel(s); }
   function formatRateBrief(amount, mode, hours) { if (!amount) return '—'; hours = hours || DEFAULT_HOURS; if (mode === 'hourly') return formatYen(amount) + '/時'; return formatMan(rateToMonthlyYen(amount, mode, hours)); }
 
@@ -4928,7 +4934,14 @@
   function applyJobFilters(list) {
     const q = searchQuery.toLowerCase();
     return list.filter(j => {
-      if (jobFilters.status !== 'all' && j.status !== jobFilters.status) return false;
+      if (jobFilters.status !== 'all') {
+        if (jobFilters.status === 'recruiting') {
+          // 募集人数が設定されていて、稼働中assignmentが募集人数未満
+          if (!j.positionsWanted) return false;
+          const activeCount = (typeof assignments !== 'undefined') ? assignments.filter(a => a.jobId === j.id && a.status === 'active').length : 0;
+          if (activeCount >= j.positionsWanted) return false;
+        } else if (j.status !== jobFilters.status) return false;
+      }
       if (jobFilters.work !== 'all') { if (j.reqWorkStyle && j.reqWorkStyle !== 'any' && j.reqWorkStyle !== jobFilters.work) return false; }
       if (jobFilters.pos !== 'all') { if (j.reqPosition && j.reqPosition !== 'both' && j.reqPosition !== jobFilters.pos) return false; }
       if (q) {
@@ -4984,10 +4997,24 @@
       rateLine = parts.join(' / ');
     }
     const jobProposals = proposals.filter(p => p.jobId === j.id);
+    // 稼働人材の集計
+    const jobAssignments = (typeof assignments !== 'undefined') ? assignments.filter(a => a.jobId === j.id) : [];
+    const activeAssignments = jobAssignments.filter(a => a.status === 'active');
+    const positionsFilled = activeAssignments.length;
+    const positionsWanted = j.positionsWanted;
+    let staffingBadge = '';
+    if (positionsWanted) {
+      const remaining = positionsWanted - positionsFilled;
+      const isFull = remaining <= 0;
+      const color = isFull ? '#2C7A4A' : (remaining <= 2 ? 'var(--accent)' : 'var(--primary)');
+      staffingBadge = `<span class="job-status" style="background: var(--paper); color: ${color}; border-color: ${color};">${positionsFilled}/${positionsWanted}名${isFull ? ' 充足' : ''}</span>`;
+    } else if (positionsFilled > 0) {
+      staffingBadge = `<span class="job-status" style="background: var(--paper); color: var(--primary); border-color: var(--primary);">${positionsFilled}名稼働中</span>`;
+    }
     return `<div class="card" onclick="openJobDetail('${j.id}')"><div class="card-accent" style="background: var(--accent);"></div>
       <div class="card-header"><div class="card-name-row"><div style="flex: 1; min-width: 0;">
         <div class="card-name">${j.status === 'filled' ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--accent); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px; letter-spacing: 0.05em;">受注済み</span>` : (j.caseNo ? `<span style="display: inline-block; padding: 2px 8px; margin-right: 8px; background: var(--primary); color: white; font-size: 11px; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 500; vertical-align: 2px;">No.${escapeHtml(j.caseNo)}</span>` : '')}${escapeHtml(j.title || '(無題)')}</div>
-        <div class="job-meta-row"><span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>${isUrgent ? '<span class="job-status" style="background: var(--rank-c-bg); color: var(--rank-c-fg); border-color: var(--rank-c-border);">期限間近</span>' : ''}</div>
+        <div class="job-meta-row"><span class="job-status ${statusCls}">${jobStatusLabel(j.status)}</span>${staffingBadge}${isUrgent ? '<span class="job-status" style="background: var(--rank-c-bg); color: var(--rank-c-fg); border-color: var(--rank-c-border);">期限間近</span>' : ''}</div>
         <div class="card-meta" style="margin-top: 6px;">${j.client ? `<strong style="color: var(--ink);">${escapeHtml(j.client)}</strong>` : '<span style="color: var(--ink-faint);">クライアント未設定</span>'}${j.recruiter ? ` · 担当 ${escapeHtml(j.recruiter)}` : ''}</div>
       </div><div class="card-actions" onclick="event.stopPropagation()"><button class="icon-btn" onclick="openJobModal('${j.id}')" title="編集">✎</button></div></div></div>
       <div class="card-body"><div class="info-grid">
@@ -5036,6 +5063,7 @@
         document.getElementById('jf-caseNo').value = j.caseNo || '';
         document.getElementById('jf-title').value = j.title || '';
         document.getElementById('jf-client').value = j.client || '';
+        document.getElementById('jf-positionsWanted').value = j.positionsWanted || '';
         document.getElementById('jf-recruiter').value = j.recruiter || '';
         document.getElementById('jf-status').value = j.status || 'open';
         document.getElementById('jf-registeredDate').value = j.registeredDate || '';
@@ -5052,7 +5080,7 @@
       }
     } else {
       document.getElementById('jf-id').value = '';
-      ['jf-caseNo','jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background'].forEach(id => document.getElementById(id).value = '');
+      ['jf-caseNo','jf-title','jf-client','jf-recruiter','jf-deadline','jf-startDate','jf-reqWorkingHours','jf-reqExperienceYears','jf-preferredIndustry','jf-reqRankCtoB','jf-background','jf-positionsWanted'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('jf-status').value = 'open';
       const today = new Date();
       document.getElementById('jf-registeredDate').value = today.toISOString().split('T')[0];
@@ -5132,6 +5160,7 @@
       id, createdAt: existing ? existing.createdAt : Date.now(), updatedAt: Date.now(), _v: 1,
       // 受注済み (filled) になったら案件Noを記載しない
       caseNo: (newStatus === 'filled' ? null : (document.getElementById('jf-caseNo').value.trim() || null)),
+      positionsWanted: numOrNull('jf-positionsWanted'),
       title, client,
       recruiter: document.getElementById('jf-recruiter').value.trim() || null,
       status: document.getElementById('jf-status').value || 'open',
@@ -5213,12 +5242,56 @@
     const jobProposals = proposals.filter(p => p.jobId === j.id);
     let proposalsBlock = '';
     if (jobProposals.length) {
-      proposalsBlock = `<div class="detail-section"><h3>提案中の候補者 (${jobProposals.length}名)</h3><div>${jobProposals.map(p => { const c = candidates.find(x => x.id === p.candidateId); if (!c) return ''; return `<div class="proposal-item" style="padding: 8px 0;"><span class="proposal-item-name" style="font-size: 13px;"><a href="#" onclick="event.preventDefault(); closeJobDetail(); switchTab('candidates'); openDetail('${c.id}');" style="color: var(--primary); text-decoration: none;">${escapeHtml(c.name)}</a>${p.notes ? `<span style="color: var(--ink-muted); font-size: 11px; margin-left: 8px;">${escapeHtml(p.notes)}</span>` : ''}</span><span class="proposal-item-actions"><span class="proposal-status ${p.status}">${proposalStatusLabel(p.status)}</span><button class="icon-btn" onclick="openProposalModal('${p.jobId}', '${p.candidateId}')" title="ステータス変更" style="width: 28px; height: 28px;">✎</button></span></div>`; }).join('')}</div></div>`;
+      // 多人数の応募対応: 5名以上ならスクロールコンテナ + サマリ
+      const isLong = jobProposals.length >= 5;
+      // ステータス別集計
+      const statusCounts = jobProposals.reduce((acc, p) => { acc[p.status || 'considering'] = (acc[p.status || 'considering'] || 0) + 1; return acc; }, {});
+      const statusSummary = Object.entries(statusCounts).map(([s, n]) => `<span class="proposal-status ${s}" style="margin-right: 4px;">${proposalStatusLabel(s)} ${n}</span>`).join('');
+      proposalsBlock = `<div class="detail-section"><h3>提案中の候補者 (${jobProposals.length}名)</h3>${isLong ? `<div style="margin-bottom: 8px; font-size: 11px;">${statusSummary}</div>` : ''}<div${isLong ? ' style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border); padding: 8px 12px; background: var(--paper-soft);"' : ''}>${jobProposals.map(p => { const c = candidates.find(x => x.id === p.candidateId); if (!c) return ''; return `<div class="proposal-item" style="padding: 8px 0;"><span class="proposal-item-name" style="font-size: 13px;"><a href="#" onclick="event.preventDefault(); closeJobDetail(); switchTab('candidates'); openDetail('${c.id}');" style="color: var(--primary); text-decoration: none;">${escapeHtml(c.name)}</a>${p.notes ? `<span style="color: var(--ink-muted); font-size: 11px; margin-left: 8px;">${escapeHtml(p.notes)}</span>` : ''}</span><span class="proposal-item-actions"><span class="proposal-status ${p.status}">${proposalStatusLabel(p.status)}</span><button class="icon-btn" onclick="openProposalModal('${p.jobId}', '${p.candidateId}')" title="ステータス変更" style="width: 28px; height: 28px;">✎</button></span></div>`; }).join('')}</div></div>`;
+    }
+
+    // 受注済み人材一覧 (assignments)
+    const jobAssignmentsList = (typeof assignments !== 'undefined') ? assignments.filter(a => a.jobId === j.id) : [];
+    let assignmentsBlock = '';
+    if (jobAssignmentsList.length) {
+      const activeCount = jobAssignmentsList.filter(a => a.status === 'active').length;
+      const endedCount = jobAssignmentsList.filter(a => a.status === 'ended').length;
+      const positionsWanted = j.positionsWanted;
+      const remaining = positionsWanted ? Math.max(0, positionsWanted - activeCount) : null;
+      assignmentsBlock = `<div class="detail-section"><h3>受注済み人材 (${jobAssignmentsList.length}名)</h3>
+        ${positionsWanted ? `<div style="margin-bottom: 10px; padding: 8px 12px; background: var(--paper-soft); border: 1px solid var(--border); font-size: 12px; display: flex; gap: 16px; align-items: center;">
+          <span><b style="font-size: 16px; color: var(--primary);">${activeCount}</b> / <b>${positionsWanted}</b>名 充足</span>
+          ${remaining > 0 ? `<span style="color: var(--accent);">残 <b>${remaining}名</b> 募集中</span>` : '<span style="color: #2C7A4A;">✓ 全員充足</span>'}
+          ${endedCount > 0 ? `<span style="color: var(--ink-muted); margin-left: auto;">終了 ${endedCount}名</span>` : ''}
+        </div>` : ''}
+        <table class="services-table" style="font-size: 12px;">
+          <thead><tr><th style="text-align: left;">人材名</th><th style="text-align: left;">期間</th><th style="text-align: right;">月売上</th><th style="text-align: right;">月原価</th><th style="text-align: right;">粗利</th><th style="text-align: center;">状態</th></tr></thead>
+          <tbody>
+            ${jobAssignmentsList.sort((a,b) => (a.status==='active'?0:1)-(b.status==='active'?0:1)).map(a => {
+              const cand = candidates.find(c => c.id === a.candId);
+              const margin = (a.monthlyRevenue || 0) - (a.monthlyCost || 0);
+              const period = `${a.startMonth || '?'}〜${a.endMonth || '継続中'}`;
+              return `<tr style="${a.status === 'active' ? '' : 'opacity: 0.6;'}">
+                <td style="font-weight: 500;"><a href="#" onclick="event.preventDefault(); closeJobDetail(); switchTab('candidates'); openDetail('${a.candId}');" style="color: var(--primary); text-decoration: none;">${cand ? escapeHtml(cand.name) : '(削除済)'}</a></td>
+                <td style="font-size: 11px;">${escapeHtml(period)}</td>
+                <td style="text-align: right;">${formatMan(a.monthlyRevenue)}</td>
+                <td style="text-align: right; color: var(--ink-muted);">${formatMan(a.monthlyCost)}</td>
+                <td style="text-align: right; color: var(--accent); font-weight: 500;">${formatMan(margin)}</td>
+                <td style="text-align: center;"><span class="job-status ${a.status === 'active' ? 'matching' : 'closed'}" style="font-size: 10px; padding: 1px 6px;">${a.status === 'active' ? '稼働中' : '終了'}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    } else if (j.positionsWanted) {
+      assignmentsBlock = `<div class="detail-section"><h3>受注済み人材</h3><div style="padding: 12px; background: var(--paper-soft); border: 1px solid var(--border); font-size: 12px; color: var(--ink-muted);">受注済み人材なし (${j.positionsWanted}名 募集中)</div></div>`;
     }
     let html = `<div class="detail-section"><h3>基本情報</h3><dl class="detail-grid">
+        ${j.caseNo && j.status !== 'filled' ? `<dt>案件No</dt><dd><b style="color: var(--primary);">No.${escapeHtml(j.caseNo)}</b></dd>` : ''}
         <dt>クライアント</dt><dd>${safe(j.client)}</dd>
         <dt>担当</dt><dd>${safe(j.recruiter)}</dd>
         <dt>ステータス</dt><dd><span class="job-status ${j.status || 'open'}">${jobStatusLabel(j.status)}</span></dd>
+        <dt>募集人数</dt><dd>${j.positionsWanted ? `${j.positionsWanted}名` : '<span class="empty">未設定</span>'}</dd>
         <dt>登録日</dt><dd>${safe(j.registeredDate)}</dd>
         <dt>募集期限</dt><dd>${safe(j.deadline)}</dd>
         <dt>スタート希望</dt><dd>${safe(j.startDate)}</dd>
@@ -5230,7 +5303,7 @@
         <dt>顧客</dt><dd>${j.reqCustomer ? customerLabel(j.reqCustomer) : '<span class="empty">不問</span>'}</dd>
         <dt>必要経験年数</dt><dd>${j.reqExperienceYears ? j.reqExperienceYears + ' 年以上' : '<span class="empty">不問</span>'}</dd>
         <dt>歓迎業界</dt><dd>${safe(j.preferredIndustry)}</dd>
-      </dl></div>${rankBlock}${rateBlock}${proposalsBlock}${j.background ? `<div class="detail-section"><h3>募集背景・メモ</h3><div class="notes-block">${escapeHtml(j.background)}</div></div>` : ''}`;
+      </dl></div>${rankBlock}${rateBlock}${assignmentsBlock}${proposalsBlock}${j.background ? `<div class="detail-section"><h3>募集背景・メモ</h3><div class="notes-block">${escapeHtml(j.background)}</div></div>` : ''}`;
     document.getElementById('job-detail-body').innerHTML = html;
     document.getElementById('job-detail-edit-btn').onclick = () => { closeJobDetail(); openJobModal(id); };
     document.getElementById('job-detail-match-btn').onclick = () => { closeJobDetail(); switchTab('matching'); matchMode = 'job-to-cand'; document.querySelectorAll('.match-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mmode === matchMode)); refreshMatchTarget(); document.getElementById('match-target').value = id; renderMatching(); };
@@ -8299,7 +8372,7 @@
       } else if (kind === 'jobs') {
         name = 'jobs';
         rows = (jobs || []).map(j => ({
-          id: j.id, 案件No: j.caseNo, 案件名: j.title, クライアント: j.client, 担当: j.recruiter, ステータス: j.status,
+          id: j.id, 案件No: j.caseNo, 案件名: j.title, クライアント: j.client, 担当: j.recruiter, ステータス: j.status, 募集人数: j.positionsWanted,
           登録日: j.registeredDate, 募集期限: j.deadline, 開始希望: j.startDate,
           勤務形態: j.reqWorkStyle, ポジション: j.reqPosition, 顧客: j.reqCustomer,
           稼働時間: j.reqWorkingHours, 必要経験年: j.reqExperienceYears, 歓迎業界: j.preferredIndustry,
