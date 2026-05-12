@@ -3159,7 +3159,7 @@
       <div class="form-section">
         <div class="form-section-title">面談メモ・所感 <span style="color: var(--ink-faint); font-size: 10px; text-transform: none; letter-spacing: 0;">(自由記入)</span></div>
         <div class="form-field">
-          <textarea id="f-notes" placeholder="面談中の聞き取りメモ・推奨案件・所感などを自由に記入..." rows="14" style="line-height: 1.7; min-height: 200px; max-height: 70vh; resize: vertical;" oninput="autoGrowMemo(this)"></textarea>
+          <textarea id="f-notes" placeholder="面談中の聞き取りメモ・推奨案件・所感などを自由に記入..." style="line-height: 1.7; height: 160px; resize: none;"></textarea>
         </div>
       </div>
     </div>
@@ -4847,7 +4847,6 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
           ? c.rawMemo + '\n\n' + c.notes
           : (c.notes || c.rawMemo || '');
         document.getElementById('f-notes').value = combinedNotes;
-        setTimeout(() => autoGrowMemo(document.getElementById('f-notes')), 50);
         document.getElementById('f-partnerCompany').value = c.partnerCompany || '';
         const partnerSel = document.getElementById('f-partnerSelect');
         if (partnerSel) partnerSel.value = (c.partnerCompany && partners.includes(c.partnerCompany)) ? c.partnerCompany : '';
@@ -4874,8 +4873,6 @@ toC/toB適性: (toC-S/toC-A/両方型/toB-A/toB-S/要見極め)
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
-      const notesEl = document.getElementById('f-notes');
-      if (notesEl) { notesEl.style.height = ''; }
       const partnerSelNew = document.getElementById('f-partnerSelect');
       if (partnerSelNew) partnerSelNew.value = '';
       const today = new Date();
